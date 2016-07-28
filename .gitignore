@@ -123,3 +123,4 @@ fabric.properties
 *.iml
 *.ipr
 modules/
+bot.log

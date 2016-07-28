@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration>
-    <!-- Configure Discord4J logger level -->
     <logger name="sx.blah.discord.Discord4J" level="DEBUG"/>
     <logger name="KotBot" level="DEBUG"/>
+    <logger name="org.reflections.Reflections" level="ERROR"/>
 
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+    
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>

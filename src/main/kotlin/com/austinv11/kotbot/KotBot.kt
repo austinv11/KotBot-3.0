@@ -1,6 +1,5 @@
 package com.austinv11.kotbot
 
-import org.reflections.Reflections
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sx.blah.discord.Discord4J
@@ -11,9 +10,6 @@ import sx.blah.discord.kotlin.bot
 import sx.blah.discord.kotlin.extensions.on
 
 fun main(args: Array<String>) {
-    //Disabling Reflections logging
-    Reflections.log = null
-    
     val startTime = System.currentTimeMillis()
     
     if (args.size < 1)
@@ -38,7 +34,10 @@ fun main(args: Array<String>) {
     }
 }
 
-val logger: Logger = LoggerFactory.getLogger("KotBot")
+private val logger: Logger = LoggerFactory.getLogger("KotBot")
+/**
+ * This represents KotBot's built-in logger instance.
+ */
 val Any.LOGGER: Logger
     get() = logger
 
