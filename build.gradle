@@ -46,4 +46,6 @@ dependencies {
     }
     //The actual Discord api:
     compile "com.github.austinv11:Discord4j:291babc"
+    //Logging implementation:
+    compile "ch.qos.logback:logback-classic:1.1.7"
 }
