@@ -1,0 +1,49 @@
+buildscript {
+    ext.kotlin_version = '1.0.3'
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url "https://dl.bintray.com/kotlin/kotlin"
+        }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'idea'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+mainClassName = 'com.austinv11.kotbot.KotBotKt'
+
+defaultTasks 'run'
+
+repositories {
+    maven {
+        url "https://dl.bintray.com/kotlin/kotlin"
+    }
+    jcenter() //Fixes Discord4J transitive dependencies
+    maven {
+        url  "https://jitpack.io" //Used for Discord4J
+    }
+}
+
+dependencies {
+    //Kotlin runtimes:
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    //Kotlin bindings for Discord4J:
+    compile("com.github.Discord4J-Addons:Discord4K:master-SNAPSHOT") {
+        exclude group: 'com.github.austinv11', module: 'Discord4j' //That way I could manage the d4j version manually
+    }
+    //So that I can have embedded modules:
+    compile("com.github.Discord4J-Addons:Module-Loader-Plus:1.0.0") {
+        exclude group: 'com.github.austinv11', module: 'Discord4j' //That way I could manage the d4j version manually
+    }
+    //The actual Discord api:
+    compile "com.github.austinv11:Discord4j:291babc"
+}
