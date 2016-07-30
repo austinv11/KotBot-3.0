@@ -80,8 +80,12 @@ open class Command(val description: String,
 
                 it.parameters.forEachIndexed { i, parameter ->
                     try {
-                        objects.add(parameter.type.cast(split[i]))
-                    } catch (e: ClassCastException) {
+                        if (parameter.type.isEnum) {
+                            objects.add(parameter.type.getMethod("valueOf", String::class.java).invoke(null, split[i].toUpperCase()))
+                        } else {
+                            objects.add(parameter.type.cast(split[i]))
+                        }
+                    } catch (e: Exception) {
                         completedLoop = false
                         return@forEachIndexed
                     }
@@ -109,8 +113,12 @@ open class Command(val description: String,
             it.parameters.forEachIndexed { i, parameter ->
                 if (i != lastIndex) {
                     try {
-                        objects.add(parameter.type.cast(split[i]))
-                    } catch (e: ClassCastException) {
+                        if (parameter.type.isEnum) {
+                            objects.add(parameter.type.getMethod("valueOf", String::class.java).invoke(null, split[i].toUpperCase()))
+                        } else {
+                            objects.add(parameter.type.cast(split[i]))
+                        }
+                    } catch (e: Exception) {
                         completedLoop = false
                         return@forEachIndexed
                     }
