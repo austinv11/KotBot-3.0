@@ -37,6 +37,10 @@ abstract class KotBotModule : IModule {
     override fun getName() = name
 
     override fun enable(client: IDiscordClient?): Boolean {
+        javaClass.declaredClasses.forEach {
+            if (Command::class.java.isAssignableFrom(it))
+                registerCommand(it.newInstance() as Command)
+        }
         initialize()
         return true
     }

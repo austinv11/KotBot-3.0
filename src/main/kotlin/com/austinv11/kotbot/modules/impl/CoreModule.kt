@@ -8,17 +8,20 @@ import com.austinv11.kotbot.modules.api.commands.Executor
 class CoreModule : KotBotModule() {
 
     override fun initialize() {
-        registerCommand(object: Command("blah", aliases = arrayOf("blah")) {
 
-            @Executor
-            fun blah(): String {
-                return "WEW "+context.user
-            }
+    }
 
-            @Executor
-            fun blah(thing: String): String {
-                return "WEW2 "+context.user
-            }
-        })
+    class BlahCommand : Command("blah") {
+
+        @Executor
+        fun blah(): String {
+            return "WEW "+context.user
+        }
+
+        @Executor
+        fun blah(thing: String): String {
+            return "WEW2 "+context.user
+        }
     }
 }
+
