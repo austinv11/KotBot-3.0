@@ -16,6 +16,7 @@ import sx.blah.discord.handle.obj.Permissions
 import sx.blah.discord.kotlin.extensions.buffer
 import sx.blah.discord.modules.IModule
 import sx.blah.discord.util.MissingPermissionsException
+import java.lang.reflect.InvocationTargetException
 import java.util.*
 import java.util.concurrent.Executors
 
@@ -56,7 +57,7 @@ abstract class KotBotModule : IModule {
      * @param command The command to register.
      */
     fun registerCommand(command: Command) {
-        commands + command
+        this.commands.add(command)
     }
     
     @EventSubscriber
@@ -132,9 +133,12 @@ abstract class KotBotModule : IModule {
 
             if (result != null)
                 buffer { channel.sendMessage(result) }
-        } catch (e: Exception) {
-            buffer { channel.sendMessage("ERROR: ${e.message}") }
-            e.printStackTrace()
+        } catch (e: Throwable) {
+            var exception: Throwable = e
+            if (e is InvocationTargetException)
+                exception = e.targetException
+            buffer { channel.sendMessage("ERROR: ${exception.javaClass.name}: ${exception.message}") }
+            exception.printStackTrace()
         } finally {
             contextMap.remove(hash)
         }

@@ -37,7 +37,7 @@ val Command.context: CommandContext
  * This represents a caller context.
  */
 data class Caller(val thread: Thread = Thread.currentThread(),
-                  val `class`: String = spoofManager.getCallerClassName(3))
+                  val `class`: String = spoofManager.getCallerClassName(4))
 
 private val spoofManager = SpoofSecurityManager()
 

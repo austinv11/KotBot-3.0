@@ -8,8 +8,8 @@ import java.util.*
 /**
  * Use this to declare a command.
  */
-open class Command(val aliases: Array<String> = emptyArray(),
-                   val description: String,
+open class Command(val description: String,
+                   val aliases: Array<String> = emptyArray(),
                    val allowInPrivateChannels: Boolean = true,
                    val allowInPublicChannels: Boolean = true,
                    val expensive: Boolean = false,
@@ -53,7 +53,7 @@ open class Command(val aliases: Array<String> = emptyArray(),
                     description = it.getDeclaredAnnotation(Description::class.java).data
                 }
 
-                paramList + Pair(it.name, description)
+                paramList.add(Pair(it.name, description))
             }
 
             params[it] = paramList
@@ -65,7 +65,11 @@ open class Command(val aliases: Array<String> = emptyArray(),
      */
     fun _execute(args: String): String? {
         //First attempt to use executors with the same number of args as the split args string
-        val split = args.split(" ")
+        var split = args.split(" ")
+
+        if (split[0] == "")
+            split = emptyList()
+
         var eligibleExecutors = executors.filter { it.parameterCount == split.size }
 
         if (eligibleExecutors.size > 0) {
@@ -76,7 +80,7 @@ open class Command(val aliases: Array<String> = emptyArray(),
 
                 it.parameters.forEachIndexed { i, parameter ->
                     try {
-                        objects + parameter.type.cast(split[i])
+                        objects.add(parameter.type.cast(split[i]))
                     } catch (e: ClassCastException) {
                         completedLoop = false
                         return@forEachIndexed
@@ -84,7 +88,11 @@ open class Command(val aliases: Array<String> = emptyArray(),
                 }
 
                 if (completedLoop) {
-                    return@_execute it.invoke(this, objects.toTypedArray())?.toString()
+                    val params = objects.toTypedArray()
+                    if (params.size == 0)
+                        return@_execute it.invoke(this)?.toString()
+                    else
+                        return@_execute it.invoke(this, *params)?.toString()
                 }
             }
         }
@@ -101,21 +109,25 @@ open class Command(val aliases: Array<String> = emptyArray(),
             it.parameters.forEachIndexed { i, parameter ->
                 if (i != lastIndex) {
                     try {
-                        objects + parameter.type.cast(split[i])
+                        objects.add(parameter.type.cast(split[i]))
                     } catch (e: ClassCastException) {
                         completedLoop = false
                         return@forEachIndexed
                     }
                 } else {
-                    objects + buildString {
+                    objects.add(buildString {
                         for (index in i..paramCount)
                             append(split[index] + " ")
-                    }.trimEnd()
+                    }.trimEnd())
                 }
             }
 
             if (completedLoop) {
-                return@_execute it.invoke(this, objects.toTypedArray())?.toString()
+                val params = objects.toTypedArray()
+                if (params.size == 0)
+                    return@_execute it.invoke(this)?.toString()
+                else
+                    return@_execute it.invoke(this, *params)?.toString()
             }
         }
 

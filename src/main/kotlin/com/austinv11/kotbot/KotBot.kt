@@ -101,8 +101,11 @@ class KotBot {
                     } else {
                         CONFIG_FILE.createNewFile()
                         _config = Config()
-                        GSON.toJson(_config, CONFIG_FILE.writer())
                     }
+
+                    val writer = CONFIG_FILE.writer()
+                    GSON.toJson(_config, writer)
+                    writer.close()
                 }
                 
                 return _config!!
