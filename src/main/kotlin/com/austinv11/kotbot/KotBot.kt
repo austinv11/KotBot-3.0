@@ -1,5 +1,7 @@
 package com.austinv11.kotbot
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sx.blah.discord.Discord4J
@@ -8,6 +10,7 @@ import sx.blah.discord.handle.impl.events.ReadyEvent
 import sx.blah.discord.handle.obj.IUser
 import sx.blah.discord.kotlin.bot
 import sx.blah.discord.kotlin.extensions.on
+import java.io.File
 
 fun main(args: Array<String>) {
     val startTime = System.currentTimeMillis()
@@ -50,6 +53,7 @@ class KotBot {
         
         private var _token: String? = null
         private var _client: IDiscordClient? = null
+        private var _config: Config? = null
 
         /**
          * The version of the bot.
@@ -80,5 +84,30 @@ class KotBot {
          */
         val OWNER: IUser
             get() = CLIENT.applicationOwner
+        /**
+         * The gson instance used by this bot.
+         */
+        val GSON: Gson = GsonBuilder().serializeNulls().setPrettyPrinting().create()
+        /**
+         * The bot's config file.
+         */
+        val CONFIG_FILE: File = File("config.json")
+        /**
+         * The bot's config.
+         */
+        val CONFIG: Config
+            get() {
+                if (_config == null) {
+                    if (CONFIG_FILE.exists()) {
+                        _config = GSON.fromJson(CONFIG_FILE.reader(), Config::class.java)
+                    } else {
+                        CONFIG_FILE.createNewFile()
+                        _config = Config()
+                        GSON.toJson(_config, CONFIG_FILE.writer())
+                    }
+                }
+                
+                return _config!!
+            }
     }
 }

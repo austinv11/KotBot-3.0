@@ -122,5 +122,4 @@ fabric.properties
 .idea/vcs.xml
 *.iml
 *.ipr
-modules/
 bot.log
