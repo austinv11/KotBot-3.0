@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
         
         token = KotBot.TOKEN
         
-        on<ReadyEvent> { 
+        on<ReadyEvent> {
             KotBot.CLIENT = it.client
             
             LOGGER.info("KotBot v${KotBot.VERSION} has been initialized!")
@@ -36,13 +36,6 @@ fun main(args: Array<String>) {
         login()
     }
 }
-
-private val logger: Logger = LoggerFactory.getLogger("KotBot")
-/**
- * This represents KotBot's built-in logger instance.
- */
-val Any.LOGGER: Logger
-    get() = logger
 
 /**
  * The bot's main class.
@@ -79,6 +72,11 @@ class KotBot {
             set(value) {
                 _token = value
             }
+        /**
+         * The bot's account.
+         */
+        val SELF: IUser
+            get() = CLIENT.ourUser
         /**
          * The owner of this bot.
          */
