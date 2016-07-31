@@ -5,4 +5,4 @@ package com.austinv11.kotbot.modules.api.commands
  */
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Description(val data: String)
+annotation class Description(val name: String, val description: String)

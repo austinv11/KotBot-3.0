@@ -45,7 +45,7 @@ dependencies {
         exclude group: 'com.github.austinv11', module: 'Discord4j' //That way I could manage the d4j version manually
     }
     //The actual Discord api:
-    compile "com.github.austinv11:Discord4j:dev-SNAPSHOT"
+    compile "com.github.austinv11:Discord4j:b6cba39"
     //Logging implementation:
     compile "ch.qos.logback:logback-classic:1.1.7"
 }

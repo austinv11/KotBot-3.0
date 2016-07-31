@@ -1,5 +1,6 @@
 package com.austinv11.kotbot.modules.api.commands
 
+import org.apache.commons.lang3.ClassUtils
 import sx.blah.discord.handle.obj.IMessage
 import sx.blah.discord.handle.obj.Permissions
 import java.lang.reflect.Method
@@ -17,8 +18,8 @@ open class Command(val description: String,
 
     val name: String
 
-    private val executors: List<Method>
-    private val params: MutableMap<Method, MutableList<Pair<String, String>>> = mutableMapOf()
+    internal val executors: List<Method>
+    internal val params: MutableMap<Method, MutableList<Pair<String, String>>> = mutableMapOf()
 
     init {
         name = this.javaClass.simpleName.removeSuffix("Kt").removeSuffix("Command").toLowerCase()
@@ -49,11 +50,16 @@ open class Command(val description: String,
             val paramList = mutableListOf<Pair<String, String>>() //Parsing params for the help command
             it.parameters.forEach {
                 var description: String = ""
+                var name: String = it.name
                 if (it.isAnnotationPresent(Description::class.java)) {
-                    description = it.getDeclaredAnnotation(Description::class.java).data
+                    val annotation = it.getDeclaredAnnotation(Description::class.java)
+                    description = annotation.description
+                    name = annotation.name
                 }
 
-                paramList.add(Pair(it.name, description))
+                name += " (${it.type.simpleName})"
+
+                paramList.add(Pair(name, description))
             }
 
             params[it] = paramList
@@ -82,8 +88,10 @@ open class Command(val description: String,
                     try {
                         if (parameter.type.isEnum) {
                             objects.add(parameter.type.getMethod("valueOf", String::class.java).invoke(null, split[i].toUpperCase()))
+                        } else if (parameter.type == String::class.java) {
+                            objects.add(split[i])
                         } else {
-                            objects.add(parameter.type.cast(split[i]))
+                            objects.add(parameter.type.kotlin.javaObjectType.getDeclaredMethod("valueOf", String::class.java).invoke(null, split[i]))
                         }
                     } catch (e: Exception) {
                         completedLoop = false
@@ -115,8 +123,10 @@ open class Command(val description: String,
                     try {
                         if (parameter.type.isEnum) {
                             objects.add(parameter.type.getMethod("valueOf", String::class.java).invoke(null, split[i].toUpperCase()))
+                        } else if (parameter.type == String::class.java) {
+                            objects.add(split[i])
                         } else {
-                            objects.add(parameter.type.cast(split[i]))
+                            objects.add(parameter.type.kotlin.javaObjectType.getDeclaredMethod("valueOf", String::class.java).invoke(null, split[i]))
                         }
                     } catch (e: Exception) {
                         completedLoop = false
