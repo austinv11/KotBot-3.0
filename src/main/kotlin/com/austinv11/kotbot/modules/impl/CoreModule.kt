@@ -7,11 +7,13 @@ import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.CommandException
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
+import sx.blah.discord.Discord4J
 import sx.blah.discord.api.events.EventSubscriber
 import sx.blah.discord.handle.impl.events.ModuleDisabledEvent
 import sx.blah.discord.handle.impl.events.ModuleEnabledEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
-import sx.blah.discord.util.MessageBuilder
+import sx.blah.discord.handle.obj.IUser
+import sx.blah.discord.util.BotInviteBuilder
 import java.lang.reflect.Method
 import java.util.*
 
@@ -180,6 +182,40 @@ class CoreModule : KotBotModule() {
             }
 
             throw CommandException("Unable to find command `$cmd`")
+        }
+    }
+
+    class InfoCommand: Command("This provides various information relating to this bot", aliases = arrayOf("about")) {
+
+        private fun formatName(user: IUser): String {
+            val name = if (context.channel.isPrivate) user.name else user.getDisplayName(context.channel.guild)
+            return "$name#${user.discriminator}"
+        }
+
+        @Executor
+        fun execute(): String {
+            return buildString {
+                appendln("```xl")
+
+                val header = "KotBot v${KotBot.VERSION}"
+                appendln(header)
+                appendln("=".repeat(header.length))
+
+                appendln("KotBot is a bot written in Kotlin and built on the Discord4J API.")
+                appendln("Invite Link: ${BotInviteBuilder(KotBot.CLIENT).build()}")
+                appendln("Github Link: https://github.com/austinv11/KotBot-3.0")
+                appendln("Prefix: ${KotBot.CONFIG.COMMAND_PREFIX} or @${formatName(KotBot.SELF)}")
+                appendln("Connected to ${KotBot.CLIENT.guilds.size} servers.")
+                appendln("Bot User: ${formatName(KotBot.SELF)} (ID: ${KotBot.SELF.id})")
+                appendln("Bot Owner: ${formatName(KotBot.OWNER)} (ID: ${KotBot.OWNER.id})")
+                appendln("Bot started at ${Discord4J.getLaunchTime()}")
+                appendln("Available Memory: ${Runtime.getRuntime().freeMemory()/100000}mb / ${Runtime.getRuntime().maxMemory()/100000}mb")
+                appendln("Discord4J Version: ${Discord4J.VERSION}")
+                appendln("Kotlin Version: ${Package.getPackage("kotlin").implementationVersion}")
+                appendln("JVM Version: ${System.getProperty("java.version")}")
+
+                append("```")
+            }
         }
     }
 }
