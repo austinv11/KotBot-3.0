@@ -49,7 +49,7 @@ class CoreModule : KotBotModule() {
     }
 
     class HelpCommand : Command("This provides usage information about the bot and various commands.",
-            aliases = arrayOf("?", "halp")) {
+            aliases = arrayOf("?", "halp", "h")) {
 
         @Executor
         fun list() {

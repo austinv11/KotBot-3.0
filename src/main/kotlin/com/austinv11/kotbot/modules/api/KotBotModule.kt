@@ -96,17 +96,27 @@ abstract class KotBotModule : IModule {
         if (command == null)
             return //No suitable command found
 
-        if (!command.allowInPrivateChannels && event.message.channel.isPrivate)
+        if (!command.allowInPrivateChannels && event.message.channel.isPrivate) {
             buffer { event.message.reply("This command cannot be executed in a private channel!") }
-        if (!command.allowInPublicChannels && !event.message.channel.isPrivate)
+            return
+        }
+        if (!command.allowInPublicChannels && !event.message.channel.isPrivate) {
             buffer { event.message.reply("This command cannot be executed in a public channel!") }
+            return
+        }
 
         try {
             DiscordUtils.checkPermissions(KotBot.CLIENT, event.message.channel, command.requiredPermissions)
         } catch (e: MissingPermissionsException) {
             if (event.message.channel.getModifiedPermissions(KotBot.SELF).contains(Permissions.SEND_MESSAGES)) { //Only send an error message if the bot has the correct permissions to do so
                 buffer { event.message.reply("I do not have the required permissions to do that action. "+e.errorMessage) }
+                return
             }
+        }
+
+        if (command.ownerOnly && event.message.author != KotBot.OWNER) {
+            buffer { event.message.reply("Only my owner can use that command!") }
+            return
         }
 
         //Executing the actual command

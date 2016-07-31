@@ -14,7 +14,8 @@ open class Command(val description: String,
                    val allowInPrivateChannels: Boolean = true,
                    val allowInPublicChannels: Boolean = true,
                    val expensive: Boolean = false,
-                   val requiredPermissions: EnumSet<Permissions> = EnumSet.of(Permissions.SEND_MESSAGES)) {
+                   val requiredPermissions: EnumSet<Permissions> = EnumSet.of(Permissions.SEND_MESSAGES),
+                   val ownerOnly: Boolean = false) {
 
     val name: String
 
@@ -141,11 +142,13 @@ open class Command(val description: String,
             }
 
             if (completedLoop) {
-                val params = objects.toTypedArray()
-                if (params.size == 0)
-                    return@_execute it.invoke(this)?.toString()
-                else
-                    return@_execute it.invoke(this, *params)?.toString()
+                try {
+                    val params = objects.toTypedArray()
+                    if (params.size == 0)
+                        return@_execute it.invoke(this)?.toString()
+                    else
+                        return@_execute it.invoke(this, *params)?.toString()
+                } catch (e: Exception) {} //FIXME: Remove this hack
             }
         }
 

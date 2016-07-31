@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
         
         on<ReadyEvent> {
             KotBot.CLIENT = it.client
-            
+
             LOGGER.info("KotBot v${KotBot.VERSION} has been initialized!")
             LOGGER.debug("Started in ${System.currentTimeMillis()-startTime}ms")
         }
@@ -47,6 +47,7 @@ class KotBot {
         private var _token: String? = null
         private var _client: IDiscordClient? = null
         private var _config: Config? = null
+        private var _owner: IUser? = null
 
         /**
          * The version of the bot.
@@ -81,7 +82,12 @@ class KotBot {
          * The owner of this bot.
          */
         val OWNER: IUser
-            get() = CLIENT.applicationOwner
+            get() {
+                if (_owner == null)
+                    _owner = CLIENT.applicationOwner
+
+                return _owner!!
+            }
         /**
          * The gson instance used by this bot.
          */
