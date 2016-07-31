@@ -16,11 +16,15 @@ buildscript {
 apply plugin: 'kotlin'
 apply plugin: 'idea'
 apply plugin: 'application'
+apply plugin: 'maven'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 mainClassName = 'com.austinv11.kotbot.KotBotKt'
+group = 'com.github.austinv11'
 
 defaultTasks 'run'
+
+tasks.install.dependsOn(tasks.installShadowApp)
 
 repositories {
     maven {
