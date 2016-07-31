@@ -85,14 +85,16 @@ class CoreModule : KotBotModule() {
         }
 
         @Executor
-        fun helpPage(@Description("command", "The command to get help for.") cmd: String): String {
+        fun helpPage(@Description("command", "The command to get help for.") cmd: String) {
+            val channel = if (KotBot.CONFIG.HELP_MESSAGE_TO_PM) context.user.orCreatePMChannel else context.channel
+
             CoreModule.commandMap.forEach {
                 val command = it.value.find {
                     return@find it.name == cmd.toLowerCase() || it.aliases.contains(cmd.toLowerCase())
                 }
 
                 if (command != null) {
-                    return@helpPage buildString {
+                    channel.sendMessage(buildString {
                         appendln("```xl")
 
                         val header = "Help page for command ${command.name}"
@@ -125,7 +127,8 @@ class CoreModule : KotBotModule() {
                         }
 
                         append("```")
-                    }
+                    })
+                    return@helpPage
                 }
             }
 
@@ -134,14 +137,16 @@ class CoreModule : KotBotModule() {
 
         @Executor
         fun extendedHelpPage(@Description("command", "The command to get help for.") cmd: String,
-                             @Description("usage index", "The usage to get additional information about.") usageType: Int): String {
+                             @Description("usage index", "The usage to get additional information about.") usageType: Int) {
+            val channel = if (KotBot.CONFIG.HELP_MESSAGE_TO_PM) context.user.orCreatePMChannel else context.channel
+
             CoreModule.commandMap.forEach {
                 val command = it.value.find {
                     return@find it.name == cmd.toLowerCase() || it.aliases.contains(cmd.toLowerCase())
                 }
 
                 if (command != null) {
-                    return@extendedHelpPage buildString {
+                    channel.sendMessage(buildString {
                         appendln("```xl")
 
                         var index = usageType-1
@@ -169,7 +174,8 @@ class CoreModule : KotBotModule() {
                         }
 
                         append("```")
-                    }
+                    })
+                    return@extendedHelpPage
                 }
             }
 
