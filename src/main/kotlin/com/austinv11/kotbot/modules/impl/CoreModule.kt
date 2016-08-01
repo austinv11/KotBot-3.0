@@ -65,6 +65,10 @@ class CoreModule : KotBotModule() {
 
             channel.sendMessage(buildString {
                 appendln("```xl")
+                
+                val header = "Command List"
+                appendln(header)
+                appendln("=".repeat(header.length))
 
                 keys.forEach {
                     appendln(it.name.removeSuffix("Module"))

@@ -6,6 +6,7 @@ import com.austinv11.kotbot.modules.api.KotBotModule
 import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
+import sx.blah.discord.Discord4J
 import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -86,6 +87,30 @@ class UtilityModule : KotBotModule() {
             }, timeUnit.toMillis(time))
 
             return "Successfully scheduled a reminder for $time ${timeUnit.toString().toLowerCase()} from now."
+        }
+    }
+    
+    class UptimeCommand: Command("This retrieves the bot's current uptime.") {
+        
+        @Executor
+        fun execute(): String {
+            return buildString { 
+                append("This bot has been online for: ")
+                
+                val instanceDifference = System.currentTimeMillis()-Discord4J.getLaunchTime()
+                        .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+                var difference = instanceDifference
+                val days: Int = TimeUnit.DAYS.convert(difference, TimeUnit.MILLISECONDS).toInt()
+                difference -= TimeUnit.MILLISECONDS.convert(days.toLong(), TimeUnit.DAYS)
+                val hours: Int = TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS).toInt()
+                difference -= TimeUnit.MILLISECONDS.convert(hours.toLong(), TimeUnit.HOURS)
+                val minutes: Int = TimeUnit.MINUTES.convert(difference, TimeUnit.MILLISECONDS).toInt()
+                difference -= TimeUnit.MILLISECONDS.convert(minutes.toLong(), TimeUnit.MINUTES)
+                val seconds = TimeUnit.SECONDS.convert(difference, TimeUnit.MILLISECONDS)
+                
+                append("$days days, $hours hours, $minutes minutes, and $seconds seconds")
+            }
         }
     }
 }
