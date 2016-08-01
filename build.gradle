@@ -39,15 +39,11 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     //Kotlin bindings for Discord4J:
-    compile("com.github.Discord4J-Addons:Discord4K:master-SNAPSHOT") {
-        exclude group: 'com.github.austinv11', module: 'Discord4j' //That way I could manage the d4j version manually
-    }
+    compile "com.github.Discord4J-Addons:Discord4K:3ed1688"
     //So that I can have embedded modules:
-    compile("com.github.Discord4J-Addons:Module-Loader-Plus:1.0.0") {
-        exclude group: 'com.github.austinv11', module: 'Discord4j' //That way I could manage the d4j version manually
-    }
+    compile "com.github.Discord4J-Addons:Module-Loader-Plus:1.0.3"
     //The actual Discord api:
-    compile "com.github.austinv11:Discord4j:b6cba39"
+    compile "com.github.austinv11:Discord4j:a2caae7"
     //Logging implementation:
     compile "ch.qos.logback:logback-classic:1.1.7"
     //HTTP library

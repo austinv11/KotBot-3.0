@@ -159,8 +159,8 @@ class CoreModule : KotBotModule() {
                         appendln("```xl")
 
                         var index = usageType-1
-                        if (index < 1)
-                            index = 1
+                        if (index < 0)
+                            index = 0
                         if (index >= command.executors.size)
                             index = command.executors.size-1
 
@@ -195,8 +195,7 @@ class CoreModule : KotBotModule() {
     class InfoCommand: Command("This provides various information relating to this bot", aliases = arrayOf("about")) {
 
         private fun formatName(user: IUser): String {
-            val name = if (context.channel.isPrivate) user.name else user.getDisplayName(context.channel.guild)
-            return "$name#${user.discriminator}"
+            return "${user.getDisplayName(context.channel.guild)}#${user.discriminator}"
         }
 
         @Executor
