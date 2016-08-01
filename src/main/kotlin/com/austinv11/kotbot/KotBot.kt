@@ -4,11 +4,14 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import sx.blah.discord.Discord4J
 import sx.blah.discord.api.IDiscordClient
+import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
 import sx.blah.discord.handle.obj.IUser
 import sx.blah.discord.kotlin.bot
 import sx.blah.discord.kotlin.extensions.on
+import sx.blah.discord.kotlin.extensions.waitFor
 import java.io.File
+import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     val startTime = System.currentTimeMillis()
@@ -117,6 +120,23 @@ class KotBot {
         /**
          * The bot's .jar path.
          */
-        val JAR_PATH = KotBot::class.java.protectionDomain.codeSource.location.toURI().path //Locates jar file (this doesn't work too well when it isn't compiled to a jar)
+        val JAR_PATH: String = KotBot::class.java.protectionDomain.codeSource.location.toURI().path //Locates jar file (this doesn't work too well when it isn't compiled to a jar)
+
+        /**
+         * This shuts down the bot.
+         */
+        fun shutdown() {
+            KotBot.CLIENT.logout()
+            KotBot.CLIENT.waitFor<DiscordDisconnectedEvent>()
+            exitProcess(0)
+        }
+        
+        /**
+         * This restarts the bot.
+         */
+        fun restart() {
+            ProcessBuilder("java", "-jar", KotBot.JAR_PATH.toString(), KotBot.TOKEN).inheritIO().start()
+            shutdown()
+        }
     }
 }

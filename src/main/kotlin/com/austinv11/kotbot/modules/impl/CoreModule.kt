@@ -11,17 +11,14 @@ import com.austinv11.kotbot.modules.api.commands.Executor
 import com.github.kittinunf.fuel.Fuel
 import sx.blah.discord.Discord4J
 import sx.blah.discord.api.events.EventSubscriber
-import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent
 import sx.blah.discord.handle.impl.events.ModuleDisabledEvent
 import sx.blah.discord.handle.impl.events.ModuleEnabledEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
 import sx.blah.discord.handle.obj.IUser
-import sx.blah.discord.kotlin.extensions.waitFor
 import sx.blah.discord.util.BotInviteBuilder
 import java.io.File
 import java.lang.reflect.Method
 import java.util.*
-import kotlin.system.exitProcess
 
 class CoreModule : KotBotModule() {
 
@@ -245,10 +242,7 @@ class CoreModule : KotBotModule() {
                         result.fold({
                             LOGGER.info("Successfully downloaded the new version of KotBot!")
                             backup.delete()
-                            ProcessBuilder("java", "-jar", KotBot.JAR_PATH.toString(), KotBot.TOKEN).inheritIO().start()
-                            KotBot.CLIENT.logout()
-                            KotBot.CLIENT.waitFor<DiscordDisconnectedEvent>()
-                            exitProcess(0)
+                            KotBot.restart()
                         },{
                             LOGGER.error("Error downloading KotBot!", it.exception)
                             throw it.exception
@@ -261,6 +255,22 @@ class CoreModule : KotBotModule() {
                 backup.renameTo(File(KotBot.JAR_PATH)) //Restore backup
                 throw e
             }
+        }
+    }
+    
+    class ShutdownCommand: Command("This shuts down the bot.", arrayOf("kill", "close"), ownerOnly = true) {
+        
+        @Executor
+        fun execute/*(Literally)*/() {
+            KotBot.shutdown()
+        }
+    }
+    
+    class RestartCommand: Command("This restarts the bot.", arrayOf("reboot"), ownerOnly = true) {
+        
+        @Executor
+        fun execute() {
+            KotBot.restart()
         }
     }
 }
