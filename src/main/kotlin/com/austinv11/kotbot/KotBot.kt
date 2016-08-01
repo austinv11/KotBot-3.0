@@ -2,8 +2,6 @@ package com.austinv11.kotbot
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import sx.blah.discord.Discord4J
 import sx.blah.discord.api.IDiscordClient
 import sx.blah.discord.handle.impl.events.ReadyEvent
@@ -23,16 +21,16 @@ fun main(args: Array<String>) {
     bot {
         if (Discord4J.LOGGER is Discord4J.Discord4JLogger)
             (Discord4J.LOGGER as Discord4J.Discord4JLogger).setLevel(Discord4J.Discord4JLogger.Level.DEBUG)
-        
+
         token = KotBot.TOKEN
-        
+
         on<ReadyEvent> {
             KotBot.CLIENT = it.client
 
             LOGGER.info("KotBot v${KotBot.VERSION} has been initialized!")
-            LOGGER.debug("Started in ${System.currentTimeMillis()-startTime}ms")
+            LOGGER.debug("Started in ${System.currentTimeMillis() - startTime}ms")
         }
-        
+
         login()
     }
 }
@@ -116,5 +114,9 @@ class KotBot {
                 
                 return _config!!
             }
+        /**
+         * The bot's .jar path.
+         */
+        val JAR_PATH = KotBot::class.java.protectionDomain.codeSource.location.toURI().path //Locates jar file (this doesn't work too well when it isn't compiled to a jar)
     }
 }

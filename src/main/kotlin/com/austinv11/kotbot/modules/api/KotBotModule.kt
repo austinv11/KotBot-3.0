@@ -26,7 +26,7 @@ import java.util.concurrent.Executors
 abstract class KotBotModule : IModule {
     
     private val name = this.javaClass.simpleName.replace("Kt", "")
-    internal val commands: MutableList<Command> = mutableListOf()
+    val commands: MutableList<Command> = mutableListOf()
     private val executor = Executors.newCachedThreadPool()
     
     /**

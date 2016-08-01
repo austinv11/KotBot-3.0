@@ -1,21 +1,27 @@
 package com.austinv11.kotbot.modules.impl
 
 import com.austinv11.kotbot.KotBot
+import com.austinv11.kotbot.LOGGER
 import com.austinv11.kotbot.context
 import com.austinv11.kotbot.modules.api.KotBotModule
 import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.CommandException
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
+import com.github.kittinunf.fuel.Fuel
 import sx.blah.discord.Discord4J
 import sx.blah.discord.api.events.EventSubscriber
+import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent
 import sx.blah.discord.handle.impl.events.ModuleDisabledEvent
 import sx.blah.discord.handle.impl.events.ModuleEnabledEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
 import sx.blah.discord.handle.obj.IUser
+import sx.blah.discord.kotlin.extensions.waitFor
 import sx.blah.discord.util.BotInviteBuilder
+import java.io.File
 import java.lang.reflect.Method
 import java.util.*
+import kotlin.system.exitProcess
 
 class CoreModule : KotBotModule() {
 
@@ -215,6 +221,45 @@ class CoreModule : KotBotModule() {
                 appendln("JVM Version: ${System.getProperty("java.version")}")
 
                 append("```")
+            }
+        }
+    }
+
+    class UpdateCommand: Command("This attempts to update this bot.", arrayOf("upgrade"), expensive = true, ownerOnly = true)  {
+
+        companion object {
+            const val DOWNLOAD_URL: String = "https://jitpack.io/com/github/austinv11/KotBot-3.0/-SNAPSHOT/KotBot-3.0--SNAPSHOT-all.jar"
+        }
+
+        @Executor
+        fun execute() {
+            val jarFile = File(KotBot.JAR_PATH)
+            val backup = File(jarFile.parent, "KotBot-backup.jar")
+
+            try {
+                if (jarFile.renameTo(backup)) { //Want a backup in case the download goes wrong
+                    LOGGER.info("Downloading a new version of KotBot...")
+                    Fuel.download(DOWNLOAD_URL).destination { response, url -> 
+                        File(KotBot.JAR_PATH)
+                    }.response { req, res, result -> 
+                        result.fold({
+                            LOGGER.info("Successfully downloaded the new version of KotBot!")
+                            backup.delete()
+                            ProcessBuilder("java", "-jar", KotBot.JAR_PATH.toString(), KotBot.TOKEN).inheritIO().start()
+                            KotBot.CLIENT.logout()
+                            KotBot.CLIENT.waitFor<DiscordDisconnectedEvent>()
+                            exitProcess(0)
+                        },{
+                            LOGGER.error("Error downloading KotBot!", it.exception)
+                            throw it.exception
+                        })
+                    }
+                } else {
+                    throw FileSystemException(jarFile, backup, "Unable to move files.")
+                }
+            } catch (e: Exception) {
+                backup.renameTo(File(KotBot.JAR_PATH)) //Restore backup
+                throw e
             }
         }
     }
