@@ -9,6 +9,7 @@ import com.austinv11.kotbot.modules.api.commands.CommandException
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
 import com.github.kittinunf.fuel.Fuel
+import com.google.gson.JsonElement
 import sx.blah.discord.Discord4J
 import sx.blah.discord.api.events.EventSubscriber
 import sx.blah.discord.handle.impl.events.ModuleDisabledEvent
@@ -274,6 +275,114 @@ class CoreModule : KotBotModule() {
         @Executor
         fun execute() {
             KotBot.restart()
+        }
+    }
+    
+    class ConfigCommand: Command("This gets or sets a config value.", ownerOnly = true) {
+        
+        @Executor
+        fun execute() = "```json\n${KotBot.GSON.toJson(KotBot.CONFIG)}\n```"
+        
+        @Executor
+        fun execute(@Description("key", "The key value to get the value from.") key: String)
+                = "`${getFieldFromInput(key)}`"
+
+        @Executor
+        fun execute(@Description("key", "The key value to get the value from.") key: String,
+                    @Description("value", "The new value to set the config key to.") value: String): String {
+            val changed = updateField(key, value)
+            
+            if (changed) {
+                return "The new value of `${key.toUpperCase()}` is now `$value`"
+            } else
+                return "Unable to modify `${key.toUpperCase()}`!"
+        }
+        
+        fun getFieldFromInput(field: String): String? {
+            val fields = field.toUpperCase().split(" ").toMutableList()
+            var iterator = 0
+            var set = KotBot.GSON.toJsonTree(KotBot.CONFIG).asJsonObject.entrySet()
+            
+            while (fields.size > iterator) {
+                val element = set.find { it.key == fields[iterator] } ?: return null
+
+                iterator++
+
+                if (fields.size == iterator) { //Reached the end of the list, no need to search for additional objects again
+                    return element.value.toString()
+                } else {
+                    if (element.value.isJsonObject) {
+                        set = element.value.asJsonObject.entrySet()
+                    } else
+                        return null
+                }
+            }
+            
+            return null
+        }
+        
+        fun updateField(field: String, value: String): Boolean {
+            val config = KotBot.GSON.toJsonTree(KotBot.CONFIG).asJsonObject
+            val fields = field.toUpperCase().split(" ").toMutableList()
+            var iterator = 0
+            var set = config.entrySet()
+            var parent: String = ""
+            
+            while (fields.size > iterator) {
+                val element = set.find { it.key == fields[iterator] } ?: return false
+                
+                if (parent.isBlank())
+                    parent = element.key
+                
+                iterator++
+                
+                if (fields.size == iterator) { //Reached the end of the list, no need to search for additional objects again
+                    val json = coerceToObject(value, element.value)
+                    val field = KotBot.CONFIG.javaClass.getDeclaredField(parent)
+                    field.isAccessible = true
+                    field.set(KotBot.CONFIG, json)
+                    KotBot.CONFIG_FILE.writeText(KotBot.GSON.toJson(KotBot.CONFIG))
+                    return true
+                } else {
+                    if (element.value.isJsonObject) {
+                        set = element.value.asJsonObject.entrySet()
+                    } else 
+                        return false
+                }
+            }
+            
+            return false
+        }
+        
+        fun coerceToObject(value: String, oldElement: JsonElement): Any? {
+            if (oldElement.isJsonObject) { //This is probably a json string
+                return KotBot.GSON.toJsonTree(value)
+            } else { //Either a boolean, number or string
+                if (oldElement.isJsonPrimitive) { //String or java primitive type
+                    if (oldElement.asJsonPrimitive.isString) {
+                        return value
+                    } else if (oldElement.asJsonPrimitive.isBoolean) {
+                        return value.toBoolean()
+                    } else if (oldElement.asJsonPrimitive.isNumber) {
+                        if (value.contains('.')) {
+                            return value.toLong()
+                        } else {
+                            return value.toInt()
+                        }
+                    }
+                } else if (oldElement.isJsonNull) { //No way to tell the type so just pass it as a string
+                    return value
+                } else if (oldElement.isJsonArray) { //It's an array
+                    val list = mutableListOf<Any>()
+                    val array = oldElement.asJsonArray
+                    value.removePrefix("[").removeSuffix("]").split(",").forEachIndexed { i, str ->
+                        list.add(coerceToObject(str.trim(), array.get(Math.max(array.size()-1, i)))!!)
+                    }
+                    return list
+                }
+            }
+            
+            return null
         }
     }
 }
