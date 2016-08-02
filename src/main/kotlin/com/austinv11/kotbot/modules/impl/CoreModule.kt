@@ -16,6 +16,7 @@ import sx.blah.discord.handle.impl.events.ModuleDisabledEvent
 import sx.blah.discord.handle.impl.events.ModuleEnabledEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
 import sx.blah.discord.handle.obj.IUser
+import sx.blah.discord.modules.IModule
 import sx.blah.discord.util.BotInviteBuilder
 import java.io.File
 import java.lang.reflect.Method
@@ -25,6 +26,7 @@ class CoreModule : KotBotModule() {
 
     companion object {
         internal val commandMap: MutableMap<KotBotModule, List<Command>> = mutableMapOf()
+        internal val disabledModules: MutableList<IModule> = mutableListOf()
     }
 
     override fun initialize() {
@@ -42,6 +44,9 @@ class CoreModule : KotBotModule() {
 
     @EventSubscriber
     fun onModuleEnable(e: ModuleEnabledEvent) {
+        if (disabledModules.contains(e.module))
+            disabledModules.remove(e.module)
+        
         if (e.module is KotBotModule && !commandMap.containsKey(e.module as KotBotModule)) {
             commandMap[e.module as KotBotModule] = (e.module as KotBotModule).commands
         }
@@ -49,7 +54,9 @@ class CoreModule : KotBotModule() {
 
     @EventSubscriber
     fun onModuleDisable(e: ModuleDisabledEvent) {
-        if (e.module is KotBotModule && commandMap.containsKey(e.module as KotBotModule)) {
+        disabledModules.add(e.module)
+        
+        if (e.module is KotBotModule && commandMap.containsKey(e.module as KotBotModule)) { 
             commandMap.remove(e.module as KotBotModule)
         }
     }
@@ -278,14 +285,65 @@ class CoreModule : KotBotModule() {
         }
     }
     
+    class ModuleCommand: Command("This allows you to configure modules for the bot.", arrayOf("modules"), ownerOnly = true) {
+        
+        @Executor
+        fun execute(): String {
+            return buildString { 
+                appendln("```xl")
+                
+                appendln("Loaded Modules")
+                appendln("==============")
+                
+                KotBot.CLIENT.moduleLoader.loadedModules.forEachIndexed { i, module ->
+                    appendln("${i+1}. ${module.name.removeSuffix("Module")} v${module.version} by ${module.author}") 
+                }
+                
+                appendln()
+                appendln("Unloaded Modules")
+                appendln("================")
+
+                disabledModules.forEachIndexed { i, module ->
+                    appendln("${i+1}. ${module.name.removeSuffix("Module")} v${module.version} by ${module.author}")
+                }
+                
+                append("```")
+            }
+        }
+        
+        @Executor
+        fun execute(@Description("action", "The action you want to perform on the module.") action: ActionType,
+                    @Description("module", "The module you want to perform the action on.") module: String): String {
+            if (action == ActionType.ENABLE) {
+                val foundModule = disabledModules.find { it.name.removeSuffix("Module").equals(module, true) } ?: return "Cannot find module `$module`"
+
+                if (KotBot.CLIENT.moduleLoader.loadModule(foundModule))
+                    return "Successfully enabled module `$module`"
+            } else if (action == ActionType.DISABLE) {
+                val foundModule = KotBot.CLIENT.moduleLoader.loadedModules.find { it.name.removeSuffix("Module").equals(module, true) } ?: return "Cannot find module `$module`"
+                
+                if (foundModule is CoreModule)
+                    return "Cannot disable the core module!"
+
+                KotBot.CLIENT.moduleLoader.unloadModule(foundModule)
+                return "Successfully disabled module `$module`"
+            }
+            
+            return "Unable to ${action.toString().toLowerCase()} `$module`"
+        }
+        
+        enum class ActionType {
+            ENABLE, DISABLE
+        }
+    }
+    
     class ConfigCommand: Command("This gets or sets a config value.", ownerOnly = true) {
         
         @Executor
         fun execute() = "```json\n${KotBot.GSON.toJson(KotBot.CONFIG)}\n```"
         
         @Executor
-        fun execute(@Description("key", "The key value to get the value from.") key: String)
-                = "`${getFieldFromInput(key)}`"
+        fun execute(@Description("key", "The key value to get the value from.") key: String) = "`${getFieldFromInput(key)}`"
 
         @Executor
         fun execute(@Description("key", "The key value to get the value from.") key: String,

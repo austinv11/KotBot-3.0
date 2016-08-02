@@ -53,6 +53,7 @@ abstract class KotBotModule : IModule {
 
     override fun disable() {
         LOGGER.info("Disabled the $name module")
+        commands.clear()
     }
 
     /**

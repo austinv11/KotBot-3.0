@@ -1,7 +1,5 @@
 package com.austinv11.kotbot.modules.api.commands
 
-import org.apache.commons.lang3.ClassUtils
-import sx.blah.discord.handle.obj.IMessage
 import sx.blah.discord.handle.obj.Permissions
 import java.lang.reflect.Method
 import java.util.*
@@ -58,7 +56,13 @@ open class Command(val description: String,
                     name = annotation.name
                 }
 
-                name += " (${it.type.simpleName})"
+                if (it.type.isEnum) {
+                    var builder = StringJoiner(", ")
+                    it.type.enumConstants.forEach { builder.add(it.toString()) }
+                    name += " (${builder.toString()})"
+                } else {
+                    name += " (${it.type.simpleName})"
+                }
 
                 paramList.add(Pair(name, description))
             }
