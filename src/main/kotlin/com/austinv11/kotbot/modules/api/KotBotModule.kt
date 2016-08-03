@@ -117,13 +117,13 @@ abstract class KotBotModule : IModule {
         }
 
         if (command.approvedUsers == ApprovedUsers.OWNER && event.message.author != KotBot.OWNER) {
-            buffer { event.message.reply("Only my owner can use that command!") }
+            buffer { event.message.reply(":no_entry_sign: Only my owner can use that command! :no_entry_sign:") }
             return
         }
         
         if ((command.approvedUsers == ApprovedUsers.ADMINISTRATORS && !KotBot.CONFIG.ADMINISTATORS.contains(event.message.author.id)) 
                 || (command.approvedUsers == ApprovedUsers.OWNER && event.message.author != KotBot.OWNER)) {
-            buffer { event.message.reply("Only administrators can use that command!") }
+            buffer { event.message.reply(":no_entry_sign: Only administrators can use that command! :no_entry_sign:") }
             return
         }
 
@@ -146,7 +146,7 @@ abstract class KotBotModule : IModule {
     }
 
     private fun executeCommand(command: Command, args: String, message: IMessage, channel: IChannel = message.channel) {
-        val hash = Objects.hash(Thread.currentThread(), command.javaClass.name) //TODO: Make sure this works
+        val hash = Objects.hash(Thread.currentThread(), command.javaClass.name)
         contextMap[hash] = CommandContext(message)
 
         val result: String?

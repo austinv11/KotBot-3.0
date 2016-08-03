@@ -2,14 +2,14 @@ package com.austinv11.kotbot.modules.impl
 
 import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.context
+import com.austinv11.kotbot.findChannelFromMessage
+import com.austinv11.kotbot.findUserFromMessage
 import com.austinv11.kotbot.modules.api.KotBotModule
 import com.austinv11.kotbot.modules.api.commands.ApprovedUsers
 import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
 import sx.blah.discord.Discord4J
-import sx.blah.discord.handle.obj.IChannel
-import sx.blah.discord.handle.obj.IUser
 import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -124,41 +124,21 @@ class UtilityModule : KotBotModule() {
         
         @Executor
         fun execute(@Description("user", "The user to find information for (either Id, Username#Discrim, Username or @Mention).") arg: String): String {
-            var user: IUser? = null
-            if (arg.contains('#') && arg.split("#").size == 2) { //User#Discrim
-                val split = arg.split('#')
-                if (split[1].filter { it.isDigit() }.length == split[1].length) { //Ensures the discrim is all numbers
-                    KotBot.CLIENT.guilds.forEach {
-                        user = it.users.find { usr ->
-                            return@find usr.getDisplayName(it) == split[0] && usr.discriminator == split[1]
-                        }
-
-                        if (user != null)
-                            return@forEach
-                    }
-                }
-            } else if (arg.startsWith("<@") && context.message.mentions.filter { it != KotBot.SELF }.size > 0) { //@Mention
-                user = context.message.mentions.find { it != KotBot.SELF }
-            } else if (arg.first().isDigit()) { //Id
-                user = KotBot.CLIENT.getUserByID(arg)
-            } else { //Name (probably)
-                user = (if (context.channel.isPrivate) KotBot.CLIENT.users else context.channel.guild.users)
-                        .find { it.getDisplayName(context.channel.guild) == arg }
-            }
+            val user = findUserFromMessage(arg, context.message)
             
             if (user != null) {
                 return buildString {
                     appendln("```xl")
 
-                    val header = "Information for user ${user!!.name}:"
+                    val header = "Information for user ${user.name}:"
                     appendln(header)
                     appendln("=".repeat(header.length))
 
-                    appendln("Name: ${user!!.getDisplayName(context.channel.guild)}#${user!!.discriminator}")
-                    appendln("ID: ${user!!.id}")
-                    appendln("Is a Bot?: ${user!!.isBot}")
-                    appendln("Avatar: ${user!!.avatarURL}")
-                    appendln("User Account Creation Date: ${user!!.creationDate}")
+                    appendln("Name: ${user.getDisplayName(context.channel.guild)}#${user.discriminator}")
+                    appendln("ID: ${user.id}")
+                    appendln("Is a Bot?: ${user.isBot}")
+                    appendln("Avatar: ${user.avatarURL}")
+                    appendln("User Account Creation Date: ${user.creationDate}")
 
                     append("```")
                 }
@@ -177,32 +157,25 @@ class UtilityModule : KotBotModule() {
 
         @Executor
         fun execute(@Description("channel", "The channel to find information for (either Id, Name, or #Mention).") arg: String): String {
-            var channel: IChannel? = null
-            if (arg.startsWith("<#") && arg.endsWith(">")) { //#Mention
-                channel = KotBot.CLIENT.getChannelByID(arg.removePrefix("<#").removeSuffix(">"))
-            } else if (arg.filter { it.isDigit() }.length == arg.length) { //Id
-                channel = KotBot.CLIENT.getChannelByID(arg)
-            } else { //Name
-                channel = KotBot.CLIENT.getChannels(false).find { it.name == arg }
-            }
+           val channel = findChannelFromMessage(arg, context.message)
 
             if (channel != null) {
                 return buildString {
                     appendln("```xl")
 
-                    val header = "Information for channel ${channel!!.name}:"
+                    val header = "Information for channel ${channel.name}:"
                     appendln(header)
                     appendln("=".repeat(header.length))
                     
-                    appendln("Name: #${channel!!.name}")
-                    appendln("ID: ${channel!!.id}")
-                    appendln("Channel Creation Date: ${channel!!.creationDate}")
+                    appendln("Name: #${channel.name}")
+                    appendln("ID: ${channel.id}")
+                    appendln("Channel Creation Date: ${channel.creationDate}")
                     
                     appendln("```")
 
                     appendln("```xl")
                     
-                    val guild = channel!!.guild
+                    val guild = channel.guild
                     
                     val guildHeader = "In guild ${guild.name}:"
                     appendln(guildHeader)
