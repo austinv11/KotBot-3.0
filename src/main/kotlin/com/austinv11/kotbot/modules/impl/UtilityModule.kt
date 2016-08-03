@@ -3,6 +3,7 @@ package com.austinv11.kotbot.modules.impl
 import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.context
 import com.austinv11.kotbot.modules.api.KotBotModule
+import com.austinv11.kotbot.modules.api.commands.ApprovedUsers
 import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
@@ -32,15 +33,13 @@ class UtilityModule : KotBotModule() {
         }
     }
 
-    class PrefixCommand: Command("This changes the bot's command prefix.", ownerOnly = true) {
+    class PrefixCommand: Command("This changes the bot's command prefix.", approvedUsers = ApprovedUsers.OWNER) {
 
         @Executor
         fun execute(@Description("prefix", "This is the new prefix to use") prefix: String): String {
             KotBot.CONFIG.COMMAND_PREFIX = prefix
 
-            val writer = KotBot.CONFIG_FILE.writer()
-            KotBot.GSON.toJson(KotBot.CONFIG, writer)
-            writer.close()
+            KotBot.CONFIG.update()
 
             return "Command prefix changed to $prefix"
         }

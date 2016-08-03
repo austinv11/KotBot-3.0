@@ -13,7 +13,7 @@ open class Command(val description: String,
                    val allowInPublicChannels: Boolean = true,
                    val expensive: Boolean = false,
                    val requiredPermissions: EnumSet<Permissions> = EnumSet.of(Permissions.SEND_MESSAGES),
-                   val ownerOnly: Boolean = false) {
+                   val approvedUsers: ApprovedUsers = ApprovedUsers.ANYONE) {
 
     val name: String
 
@@ -165,3 +165,7 @@ open class Command(val description: String,
 }
 
 class CommandException(override val message: String) : Exception(message)
+
+enum class ApprovedUsers {
+    ANYONE, ADMINISTRATORS, OWNER
+}

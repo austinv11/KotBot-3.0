@@ -4,10 +4,7 @@ import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.LOGGER
 import com.austinv11.kotbot.context
 import com.austinv11.kotbot.modules.api.KotBotModule
-import com.austinv11.kotbot.modules.api.commands.Command
-import com.austinv11.kotbot.modules.api.commands.CommandException
-import com.austinv11.kotbot.modules.api.commands.Description
-import com.austinv11.kotbot.modules.api.commands.Executor
+import com.austinv11.kotbot.modules.api.commands.*
 import com.github.kittinunf.fuel.Fuel
 import com.google.gson.JsonElement
 import sx.blah.discord.Discord4J
@@ -16,6 +13,7 @@ import sx.blah.discord.handle.impl.events.ModuleDisabledEvent
 import sx.blah.discord.handle.impl.events.ModuleEnabledEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
 import sx.blah.discord.handle.obj.IUser
+import sx.blah.discord.handle.obj.Permissions
 import sx.blah.discord.modules.IModule
 import sx.blah.discord.util.BotInviteBuilder
 import java.io.File
@@ -79,10 +77,12 @@ class CoreModule : KotBotModule() {
                 appendln("=".repeat(header.length))
 
                 keys.forEach {
-                    appendln(it.name.removeSuffix("Module"))
+                    if (it.commands.size > 0) {
+                        appendln(it.name.removeSuffix("Module"))
 
-                    it.commands.forEach {
-                        appendln("*${it.name}")
+                        it.commands.forEach {
+                            appendln("*${it.name}")
+                        }
                     }
                 }
 
@@ -119,6 +119,9 @@ class CoreModule : KotBotModule() {
                         appendln("=".repeat(header.length))
 
                         appendln(command.description)
+                        appendln()
+                        
+                        appendln("Approved Users: "+command.approvedUsers)
                         appendln()
 
                         appendln("Aliases: "+command.aliases.joinToString(", "))
@@ -233,7 +236,8 @@ class CoreModule : KotBotModule() {
         }
     }
 
-    class UpdateCommand: Command("This attempts to update this bot.", arrayOf("upgrade"), expensive = true, ownerOnly = true)  {
+    class UpdateCommand: Command("This attempts to update this bot.", arrayOf("upgrade"), expensive = true, 
+            requiredPermissions = EnumSet.noneOf(Permissions::class.java), approvedUsers = ApprovedUsers.OWNER)  {
 
         companion object {
             const val DOWNLOAD_URL: String = "https://jitpack.io/com/github/austinv11/KotBot-3.0/-SNAPSHOT/KotBot-3.0--SNAPSHOT-all.jar"
@@ -269,7 +273,8 @@ class CoreModule : KotBotModule() {
         }
     }
     
-    class ShutdownCommand: Command("This shuts down the bot.", arrayOf("kill", "close"), ownerOnly = true) {
+    class ShutdownCommand: Command("This kills the bot.", arrayOf("kill", "close"), 
+            requiredPermissions = EnumSet.noneOf(Permissions::class.java), approvedUsers = ApprovedUsers.OWNER) {
         
         @Executor
         fun execute/*(Literally)*/() {
@@ -277,7 +282,8 @@ class CoreModule : KotBotModule() {
         }
     }
     
-    class RestartCommand: Command("This restarts the bot.", arrayOf("reboot"), ownerOnly = true) {
+    class RestartCommand: Command("This restarts the bot.", arrayOf("reboot"), 
+            requiredPermissions = EnumSet.noneOf(Permissions::class.java), approvedUsers = ApprovedUsers.OWNER) {
         
         @Executor
         fun execute() {
@@ -285,7 +291,8 @@ class CoreModule : KotBotModule() {
         }
     }
     
-    class ModuleCommand: Command("This allows you to configure modules for the bot.", arrayOf("modules"), ownerOnly = true) {
+    class ModuleCommand: Command("This allows you to configure modules for the bot.", arrayOf("modules"), 
+            approvedUsers = ApprovedUsers.OWNER) {
         
         @Executor
         fun execute(): String {
@@ -337,7 +344,7 @@ class CoreModule : KotBotModule() {
         }
     }
     
-    class ConfigCommand: Command("This gets or sets a config value.", ownerOnly = true) {
+    class ConfigCommand: Command("This gets or sets a config value.", approvedUsers = ApprovedUsers.OWNER) {
         
         @Executor
         fun execute() = "```json\n${KotBot.GSON.toJson(KotBot.CONFIG)}\n```"
@@ -399,7 +406,7 @@ class CoreModule : KotBotModule() {
                     val field = KotBot.CONFIG.javaClass.getDeclaredField(parent)
                     field.isAccessible = true
                     field.set(KotBot.CONFIG, json)
-                    KotBot.CONFIG_FILE.writeText(KotBot.GSON.toJson(KotBot.CONFIG))
+                    KotBot.CONFIG.update()
                     return true
                 } else {
                     if (element.value.isJsonObject) {

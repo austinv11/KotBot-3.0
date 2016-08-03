@@ -3,6 +3,7 @@ package com.austinv11.kotbot.modules.api
 import com.austinv11.kotbot.CommandContext
 import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.contextMap
+import com.austinv11.kotbot.modules.api.commands.ApprovedUsers
 import com.austinv11.kotbot.modules.api.commands.Command
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -115,8 +116,14 @@ abstract class KotBotModule : IModule {
             }
         }
 
-        if (command.ownerOnly && event.message.author != KotBot.OWNER) {
+        if (command.approvedUsers == ApprovedUsers.OWNER && event.message.author != KotBot.OWNER) {
             buffer { event.message.reply("Only my owner can use that command!") }
+            return
+        }
+        
+        if ((command.approvedUsers == ApprovedUsers.ADMINISTRATORS && !KotBot.CONFIG.ADMINISTATORS.contains(event.message.author.id)) 
+                || (command.approvedUsers == ApprovedUsers.OWNER && event.message.author != KotBot.OWNER)) {
+            buffer { event.message.reply("Only administrators can use that command!") }
             return
         }
 

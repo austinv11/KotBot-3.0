@@ -26,6 +26,7 @@ fun main(args: Array<String>) {
             (Discord4J.LOGGER as Discord4J.Discord4JLogger).setLevel(Discord4J.Discord4JLogger.Level.DEBUG)
 
         token = KotBot.TOKEN
+        KotBot.CLIENT = this
 
         on<ReadyEvent> {
             KotBot.CLIENT = it.client
