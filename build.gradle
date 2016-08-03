@@ -28,6 +28,9 @@ repositories {
     maven {
         url "https://dl.bintray.com/kotlin/kotlin"
     }
+    maven { //Temporarily needed for d4j-player
+        url "http://dl.bintray.com/dv8fromtheworld/maven"
+    }
     jcenter() //Fixes Discord4J transitive dependencies
     maven {
         url  "https://jitpack.io" //Used for Discord4J
@@ -44,6 +47,10 @@ dependencies {
     compile "com.github.Discord4J-Addons:Module-Loader-Plus:1.0.3"
     //The actual Discord api:
     compile "com.github.austinv11:Discord4j:c581dd1"
+    //D4J/JDA player:
+    compile("net.dv8tion:d4j-player:0.2.2_15") {
+        exclude group: 'com.github.austinv11', module: 'Discord4j' //That way I could manage the d4j version manually
+    }
     //Logging implementation:
     compile "ch.qos.logback:logback-classic:1.1.7"
     //HTTP library
