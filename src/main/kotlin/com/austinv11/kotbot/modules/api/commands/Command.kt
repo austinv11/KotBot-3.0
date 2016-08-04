@@ -139,20 +139,20 @@ open class Command(val description: String,
                     }
                 } else {
                     objects.add(buildString {
-                        for (index in i..paramCount)
+                        for (index in i..split.size-1)
                             append(split[index] + " ")
                     }.trimEnd())
                 }
             }
 
             if (completedLoop) {
-                try {
+//                try {
                     val params = objects.toTypedArray()
                     if (params.size == 0)
                         return@_execute it.invoke(this)?.toString()
                     else
                         return@_execute it.invoke(this, *params)?.toString()
-                } catch (e: Exception) {} //FIXME: Remove this hack
+//                } catch (e: Exception) {} //FIXME: Remove this hack (Ignore until this is uncommented)
             }
         }
 

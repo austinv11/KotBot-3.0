@@ -22,7 +22,7 @@ import java.util.*
 class MusicModule: KotBotModule() { //NOTE: This requires python, youtube-dl, ffmpeg and ffprobe to be installed
     
     companion object {
-        init { //Workaround for JDA-Player being broken on unix
+        init { //Workaround for JDA-Player being when youtube-dl is not on the same directory as the bot
             modifyStaticFinalField(Playlist::class.java.getDeclaredField("YOUTUBE_DL_PLAYLIST_ARGS"), 
                     Collections.unmodifiableList(Arrays.asList(
                         "youtube-dl", //youtube-dl program file
