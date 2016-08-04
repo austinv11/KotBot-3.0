@@ -117,7 +117,13 @@ open class Command(val description: String,
         //If a suitable executor was found, this would not be reached
         eligibleExecutors = executors.filter { it.parameterCount < split.size && (it.parameterCount != 0 || split.size == 0) }
 
-        eligibleExecutors.forEach {
+        eligibleExecutors.sortedWith(Comparator { o1, o2 ->
+            val initialResult = Math.negateExact(o1.parameterCount.compareTo(o2.parameterCount))
+            if (initialResult == 0) {
+                return@Comparator Math.negateExact(o1.name.compareTo(o2.name))
+            } else
+                return@Comparator initialResult
+        }).forEach {
             var completedLoop = true
             val objects: MutableList<Any> = mutableListOf()
             val lastIndex = it.parameterCount-1
