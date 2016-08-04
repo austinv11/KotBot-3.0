@@ -121,10 +121,12 @@ abstract class KotBotModule : IModule {
             return
         }
         
-        if ((command.approvedUsers == ApprovedUsers.ADMINISTRATORS && !KotBot.CONFIG.ADMINISTATORS.contains(event.message.author.id)) 
-                || (command.approvedUsers == ApprovedUsers.OWNER && event.message.author != KotBot.OWNER)) {
-            buffer { event.message.reply(":no_entry_sign: Only administrators can use that command! :no_entry_sign:") }
-            return
+        if (command.approvedUsers == ApprovedUsers.ADMINISTRATORS) {
+            if (!KotBot.CONFIG.ADMINISTATORS.contains(event.message.author.id) 
+                    && event.message.author != KotBot.OWNER) {
+                buffer { event.message.reply(":no_entry_sign: Only administrators can use that command! :no_entry_sign:") }
+                return
+            }
         }
 
         //Executing the actual command
