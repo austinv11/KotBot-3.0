@@ -1,7 +1,9 @@
 package com.austinv11.kotbot
 
+import com.austinv11.kotbot.modules.impl.GithubWebhookModule
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import spark.Spark
 import sx.blah.discord.Discord4J
 import sx.blah.discord.api.IDiscordClient
 import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent
@@ -136,6 +138,7 @@ class KotBot {
          * This restarts the bot.
          */
         fun restart() {
+            Spark.stop()
             ProcessBuilder("java", "-jar", KotBot.JAR_PATH.toString(), KotBot.TOKEN).inheritIO().start()
             shutdown()
         }
