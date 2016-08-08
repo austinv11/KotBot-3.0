@@ -67,6 +67,9 @@ abstract class KotBotModule : IModule {
     
     @EventSubscriber
     fun onMessageReceived(event: MessageReceivedEvent) { //Handles command
+        if (event.message.author.isBot)
+            return //No bots allowed
+        
         var msg = event.message.content
         //Strip command prefix (either mention or actual prefix)
         if (msg.startsWith(KotBot.CONFIG.COMMAND_PREFIX)) {
