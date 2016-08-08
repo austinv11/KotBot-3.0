@@ -5,6 +5,7 @@ import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.contextMap
 import com.austinv11.kotbot.modules.api.commands.ApprovedUsers
 import com.austinv11.kotbot.modules.api.commands.Command
+import nl.komponents.kovenant.task
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sx.blah.discord.api.IDiscordClient
@@ -19,7 +20,6 @@ import sx.blah.discord.modules.IModule
 import sx.blah.discord.util.MissingPermissionsException
 import java.lang.reflect.InvocationTargetException
 import java.util.*
-import java.util.concurrent.Executors
 
 /**
  * This is the base module class for KotBot modules.
@@ -28,7 +28,6 @@ abstract class KotBotModule : IModule {
     
     private val name = this.javaClass.simpleName.replace("Kt", "")
     val commands: MutableList<Command> = mutableListOf()
-    internal val executor = Executors.newCachedThreadPool()
     
     /**
      * The logger for this module.
@@ -132,15 +131,17 @@ abstract class KotBotModule : IModule {
         //Executing the actual command
         val commandArgs = msg.removePrefix(commandString).trim()
         if (command.expensive) {
-            executor.submit {
+            task {
                 val channel = event.message.channel
                 if (!channel.typingStatus)
                     channel.toggleTypingStatus()
 
                 executeCommand(command as Command, commandArgs, event.message)
-
-                if (channel.typingStatus)
-                    channel.toggleTypingStatus()
+            }.fail { 
+                buffer { event.message.channel.sendMessage("ERROR: ${it.javaClass.name}: ${it.message}") }
+            }.always {
+                if (event.message.channel.typingStatus)
+                    event.message.channel.toggleTypingStatus()
             }
         } else {
             executeCommand(command, commandArgs, event.message)

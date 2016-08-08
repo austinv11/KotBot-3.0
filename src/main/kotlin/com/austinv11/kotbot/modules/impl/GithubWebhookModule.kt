@@ -31,7 +31,7 @@ class GithubWebhookModule: KotBotModule() { //Suck it voltbot!
                 println(request.body())
                 when (request.headers("X-GitHub-Event")) {
                     "ping" -> {
-                        //Ignored for now, pinged when tje webhook is activated on a repo
+                        //Ignored for now, pinged when the webhook is activated on a repo
                     }
                     "issues" -> {
                         val issue: Issue = KotBot.GSON.fromJson(request.body(), Issue::class.java)
