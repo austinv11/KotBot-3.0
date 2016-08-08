@@ -1,8 +1,8 @@
 package com.austinv11.kotbot
 
-import com.austinv11.kotbot.modules.impl.GithubWebhookModule
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import spark.Service
 import spark.Spark
 import sx.blah.discord.Discord4J
 import sx.blah.discord.api.IDiscordClient
@@ -13,6 +13,8 @@ import sx.blah.discord.kotlin.bot
 import sx.blah.discord.kotlin.extensions.on
 import sx.blah.discord.kotlin.extensions.waitFor
 import java.io.File
+import java.lang.reflect.Field
+import java.lang.reflect.Method
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -52,6 +54,16 @@ class KotBot {
         private var _client: IDiscordClient? = null
         private var _config: Config? = null
         private var _owner: IUser? = null
+        private val _sparkInstance: Method
+        private val _isInitialized: Field
+
+        init {
+            _sparkInstance = Spark::class.java.getDeclaredMethod("getInstance")
+            _sparkInstance.isAccessible = true
+            
+            _isInitialized = Service::class.java.getDeclaredField("initialized")
+            _isInitialized.isAccessible = true
+        }
 
         /**
          * The version of the bot.
@@ -126,6 +138,16 @@ class KotBot {
         val JAR_PATH: String = KotBot::class.java.protectionDomain.codeSource.location.toURI().path //Locates jar file (this doesn't work too well when it isn't compiled to a jar)
 
         /**
+         * Checks whether the embedded server is running currently.
+         */
+        val IS_SERVER_RUNNING: Boolean
+            get() {
+                val service = _sparkInstance.invoke(null) as Service
+                
+                return _isInitialized.get(service) as Boolean
+            }
+        
+        /**
          * This shuts down the bot.
          */
         fun shutdown() {
@@ -139,6 +161,7 @@ class KotBot {
          */
         fun restart() {
             Spark.stop()
+            while (IS_SERVER_RUNNING) {} //Block until server is closed
             ProcessBuilder("java", "-jar", KotBot.JAR_PATH.toString(), KotBot.TOKEN).inheritIO().start()
             shutdown()
         }
