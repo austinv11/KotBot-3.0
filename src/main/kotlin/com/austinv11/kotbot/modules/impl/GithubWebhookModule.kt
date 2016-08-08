@@ -24,7 +24,7 @@ class GithubWebhookModule: KotBotModule() { //Suck it voltbot!
     override fun initialize() {
         isEnabled = true
         
-        Spark.port(3000)
+        Spark.port(KotBot.CONFIG.PORT)
         
         Spark.post("/github", { request, response -> 
             if (isEnabled) {
