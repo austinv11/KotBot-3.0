@@ -1,11 +1,14 @@
 package com.austinv11.kotbot.modules.api
 
+import com.austinv11.kotbot.Administrators
 import com.austinv11.kotbot.CommandContext
 import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.contextMap
 import com.austinv11.kotbot.modules.api.commands.ApprovedUsers
 import com.austinv11.kotbot.modules.api.commands.Command
 import nl.komponents.kovenant.task
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sx.blah.discord.api.IDiscordClient
@@ -14,6 +17,7 @@ import sx.blah.discord.api.internal.DiscordUtils
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent
 import sx.blah.discord.handle.obj.IChannel
 import sx.blah.discord.handle.obj.IMessage
+import sx.blah.discord.handle.obj.IUser
 import sx.blah.discord.handle.obj.Permissions
 import sx.blah.discord.kotlin.extensions.buffer
 import sx.blah.discord.modules.IModule
@@ -33,6 +37,22 @@ abstract class KotBotModule : IModule {
      * The logger for this module.
      */
     val LOGGER: Logger = LoggerFactory.getLogger(name)
+    
+    companion object {
+        internal fun isAdmin(message: IMessage): Boolean {
+            return isAdmin(message.author) && message.author != message.guild.owner
+        }
+
+        internal fun isAdmin(user: IUser): Boolean {
+            var result: Boolean = false
+
+            transaction {
+                result = Administrators.slice(Administrators.id).select { Administrators.id.eq(user.id) }.firstOrNull() != null
+            }
+
+            return result && user != KotBot.OWNER
+        }
+    }
     
     override fun getName() = name
 
@@ -124,8 +144,7 @@ abstract class KotBotModule : IModule {
         }
         
         if (command.approvedUsers == ApprovedUsers.ADMINISTRATORS) {
-            if (!KotBot.CONFIG.ADMINISTATORS.contains(event.message.author.id) 
-                    && event.message.author != KotBot.OWNER) {
+            if (!isAdmin(event.message)) {
                 buffer { event.message.reply(":no_entry_sign: Only administrators can use that command! :no_entry_sign:") }
                 return
             }

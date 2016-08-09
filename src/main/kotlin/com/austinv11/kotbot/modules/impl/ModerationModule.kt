@@ -6,6 +6,9 @@ import com.austinv11.kotbot.modules.api.commands.ApprovedUsers
 import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.transactions.transaction
 import sx.blah.discord.handle.obj.Permissions
 import sx.blah.discord.kotlin.extensions.buffer
 import java.util.*
@@ -24,9 +27,10 @@ class ModerationModule: KotBotModule() {
         fun execute(@Description("user", "The user to promote.") user: String): String {
             val userObj = findUserFromMessage(user, context.message) ?: return ":poop: Can't find user $user"
             
-            if (!userObj.isSelfOrOwner && !KotBot.CONFIG.ADMINISTATORS.contains(userObj.id)) {
-                KotBot.CONFIG.ADMINISTATORS.add(userObj.id)
-                KotBot.CONFIG.update()
+            if (!userObj.isSelfOrOwner && !isAdmin(userObj)) {
+                transaction { 
+                    Administrators.insert { it[id] = userObj.id }
+                }
             }
             
             return ":ok_hand:"
@@ -40,9 +44,10 @@ class ModerationModule: KotBotModule() {
         fun execute(@Description("user", "The user to demote.") user: String): String {
             val userObj = findUserFromMessage(user, context.message) ?: return ":poop: Can't find user $user"
 
-            if (!userObj.isSelfOrOwner && KotBot.CONFIG.ADMINISTATORS.contains(userObj.id)) {
-                KotBot.CONFIG.ADMINISTATORS.remove(userObj.id)
-                KotBot.CONFIG.update()
+            if (!userObj.isSelfOrOwner && isAdmin(userObj)) {
+                transaction {
+                    Administrators.deleteWhere { Administrators.id like userObj.id }
+                }
             }
 
             return ":ok_hand:"

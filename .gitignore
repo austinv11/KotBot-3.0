@@ -123,3 +123,4 @@ fabric.properties
 *.ipr
 bot.log
 config.json
+*.db

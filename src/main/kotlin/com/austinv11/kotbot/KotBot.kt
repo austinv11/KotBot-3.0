@@ -23,6 +23,8 @@ fun main(args: Array<String>) {
     if (args.size < 1)
         throw IllegalArgumentException("At least one argument (token) required!")
     
+    initializeDatabase()
+    
     KotBot.TOKEN = args[0]
     
     bot {
