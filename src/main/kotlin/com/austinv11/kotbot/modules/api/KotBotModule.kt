@@ -47,7 +47,7 @@ abstract class KotBotModule : IModule {
             var result: Boolean = false
 
             transaction {
-                result = Administrators.slice(Administrators.id).select { Administrators.id.eq(user.id) }.firstOrNull() != null
+                result = Administrators.select { Administrators.id like user.id }.firstOrNull() != null
             }
 
             return result && user != KotBot.OWNER
