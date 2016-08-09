@@ -1,6 +1,7 @@
 package com.austinv11.kotbot
 
-data class Config(var COMMAND_PREFIX: String = "~", var HELP_MESSAGE_TO_PM: Boolean = false, 
+data class Config(var COMMAND_PREFIX: String = "~", 
+                  var HELP_MESSAGE_TO_PM: Boolean = false, 
                   var GITHUB_WEBHOOKS: MutableList<Webhook> = mutableListOf(),
                   var PORT: Int = 3000) {
     

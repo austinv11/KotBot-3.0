@@ -1,15 +1,25 @@
 package com.austinv11.kotbot.modules.impl
 
+import com.austinv11.kotbot.Bots
 import com.austinv11.kotbot.KotBot
+import com.austinv11.kotbot.context
 import com.austinv11.kotbot.modules.api.KotBotModule
 import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
 import org.apache.commons.lang3.SystemUtils
+import org.jetbrains.exposed.sql.SchemaUtils.create
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import sx.blah.discord.api.events.EventSubscriber
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
+import sx.blah.discord.handle.impl.events.UserJoinEvent
+import sx.blah.discord.handle.obj.IGuild
 import sx.blah.discord.kotlin.extensions.on
+import sx.blah.discord.kotlin.extensions.waitFor
 import sx.blah.discord.util.DiscordException
 import sx.blah.discord.util.MissingPermissionsException
 import sx.blah.discord.util.RateLimitException
@@ -20,6 +30,11 @@ class Discord4JHelpModule : KotBotModule() {
     
     companion object {
         const val OWNER_ID = "84745855399129088" //Austinv11's (me) id
+        const val DISCORD4J_GUILD_ID = "208023865127862272" //Discord4J's guild's id
+        const val ADMIN_CHANNEL_ID = "210938552563925002" //#admin-chat's id
+        const val BOT_ROLE_ID = "208025916121677824" //The Bot role id
+        
+        var requestID: Int = 0
         
         val PROJECTS: Array<Pair<String, String>> = arrayOf(
                 Pair("sx.blah.discord.kotlin", "https://github.com/Discord4J-Addons/Discord4K"),
@@ -35,14 +50,119 @@ class Discord4JHelpModule : KotBotModule() {
         KotBot.CLIENT.on<ReadyEvent> {
             if (!KotBot.OWNER.id.equals(OWNER_ID)) { //This is meant to only be used by me for my personal server
                 KotBot.CLIENT.moduleLoader.unloadModule(instance)
-            }       
+            } else {
+                transaction { 
+                    create(Bots)
+                }
+            }
         }
     }
     
     @EventSubscriber
     fun onMessage(event: MessageReceivedEvent) { //Analyzes messages to determine a way to best help people
-        
+        //TODO
     }
+    
+    @EventSubscriber
+    fun onJoin(event: UserJoinEvent) {
+        if (event.guild.id == DISCORD4J_GUILD_ID && event.user.isBot) { //Auto add the bot role in the d4j guild
+            if (event.user.getRolesForGuild(event.guild).size == 0)
+                event.user.addRole(event.guild.getRoleByID(BOT_ROLE_ID), event.guild)
+        }
+    }
+    
+    class BotCommand: Command("This allows you to invite a bot to the server.", allowInPrivateChannels = false,
+            expensive = true) {
+        
+        @Executor
+        fun execute(@Description("prefix", "The prefix you are requesting your bot to use.") botPrefix: String,
+                    @Description("invite", "The invite link for your bot.") link: String): String {
+            if (context.channel.guild.id != DISCORD4J_GUILD_ID)
+                return ":poop: Cannot invite a bot to any server but the Discord4J server with this command!"
+            
+            val channel = context.channel.guild.getChannelByID(ADMIN_CHANNEL_ID)
+            val id = requestID++
+            channel.sendMessage("User ${context.user.getDisplayName(context.channel.guild)} requested his/her bot join!\n" +
+                    "Invite link: <$link>\n" +
+                    "Prefix: `$botPrefix` (Conflicts with: ${getConflicts(botPrefix, context.channel.guild)})\n" +
+                    "Please accept or deny this request by typing `accept $id` or `deny $id <reason>`")
+            channel.toggleTypingStatus()
+            var accepted = false
+            var reason: String? = null
+            KotBot.CLIENT.waitFor<MessageReceivedEvent> { 
+                if (it.message.channel == channel) {
+                    if (it.message.content.startsWith("accept $id")) {
+                        accepted = true
+                        return@waitFor true
+                    } else if (it.message.content.startsWith("deny $id")) {
+                        reason = it.message.content.removePrefix("deny $id").trim()
+                        accepted = false
+                        return@waitFor true
+                    }
+                }
+                
+                return@waitFor false
+            }
+            
+            if (accepted)
+                KotBot.CLIENT.waitFor<UserJoinEvent> {
+                    if (it.guild.id == DISCORD4J_GUILD_ID && it.user.isBot) {
+                        val bot = it.user
+                        transaction {
+                            Bots.insert {
+                                it[bot_id] = bot.id
+                                it[prefix] = botPrefix
+                            }
+                        }
+                        return@waitFor true
+                    }
+    
+                    return@waitFor false
+                }
+            
+            if (channel.typingStatus)
+                channel.toggleTypingStatus()
+            
+            return if (accepted) "${context.user.mention()} Accepted! :ok_hand:" else "${context.user.mention()} Rejected! :poop: Reason: $reason"
+        }
+
+        private fun getConflicts(prefix: String, guild: IGuild): String {
+            val appender = StringJoiner(", ")
+            appender.setEmptyValue("nothing :D")
+            transaction { 
+                Bots.select { Bots.prefix like prefix }.forEach { appender.add(guild.getUserByID(it[Bots.bot_id])?.mention()) }
+            }
+            
+            return appender.toString()
+        }
+    }
+    
+    class PrefixesCommand: Command("This gets a list of prefixes used by bots on the Discord4J guild.", allowInPrivateChannels = false) {
+        
+        @Executor
+        fun execute(): String {
+            return buildString { 
+                val prefixMap = mutableMapOf<String, MutableList<String>>()
+                transaction { 
+                    Bots.selectAll().forEach { 
+                        val id = it[Bots.bot_id]
+                        
+                        if (!prefixMap.containsKey(id))
+                            prefixMap[id] = mutableListOf()
+                        
+                        prefixMap[id]!!.add(it[Bots.prefix])
+                    }
+                }
+                
+                appendln("__Prefixes:__")
+                
+                prefixMap.forEach { 
+                    appendln("${it.key} - ${it.value.joinToString(", ", 
+                            transform = { context.channel.guild.getUserByID(it).getDisplayName(context.channel.guild) })}")
+                }
+            }
+        }
+    } 
     
     class StackTraceCommand: Command("This analyzes the provided stacktrace.", arrayOf("trace", "stack")) {
         

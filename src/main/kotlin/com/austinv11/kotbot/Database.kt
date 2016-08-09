@@ -6,14 +6,21 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Administrators: Table() {
-    val id = varchar("id", 17).primaryKey()
+    val key = integer("id").autoIncrement().primaryKey()
+    val id = text("user_id")
 }
 
 object Tags: Table() {
     val id = integer("id").autoIncrement().primaryKey()
-    val guild_id = varchar("guild_id", 17) //Guild id
+    val guild_id = text("guild_id")
     val tag_id = text("tag_id")
     val value = text("value")
+}
+
+object Bots: Table() {
+    val id = integer("id").autoIncrement().primaryKey()
+    val bot_id = text("bot_id")
+    val prefix = text("prefix")
 }
 
 val db = Database.connect("jdbc:h2:./database", driver = "org.h2.Driver")
