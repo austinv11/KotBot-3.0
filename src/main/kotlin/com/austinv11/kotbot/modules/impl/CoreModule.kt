@@ -264,8 +264,8 @@ class CoreModule : KotBotModule() {
         }
     }
 
-    class UpdateCommand: Command("This attempts to update this bot.", arrayOf("upgrade"), expensive = true, 
-            requiredPermissions = EnumSet.noneOf(Permissions::class.java), approvedUsers = ApprovedUsers.OWNER)  {
+    class UpdateCommand: Command("This attempts to update this bot (This can take awhile)." , arrayOf("upgrade"), 
+            expensive = true, approvedUsers = ApprovedUsers.OWNER)  {
 
         companion object {
             const val DOWNLOAD_URL: String = "https://jitpack.io/com/github/austinv11/KotBot-3.0/-SNAPSHOT/KotBot-3.0--SNAPSHOT-all.jar"

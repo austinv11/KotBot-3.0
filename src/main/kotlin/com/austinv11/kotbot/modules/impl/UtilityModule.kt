@@ -21,6 +21,12 @@ class UtilityModule : KotBotModule() {
 
     }
 
+    class EchoCommand: Command("This echoes the provided string.", aliases = arrayOf("repeat")) {
+        
+        @Executor
+        fun execute(@Description("message", "The message to repeat.") message: String) = message
+    }
+    
     class PingCommand: Command("This provides information about the response time for this bot.") {
 
         @Executor
