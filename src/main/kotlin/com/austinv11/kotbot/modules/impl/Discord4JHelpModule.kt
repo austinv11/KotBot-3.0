@@ -149,7 +149,7 @@ class Discord4JHelpModule : KotBotModule() {
             val appender = StringJoiner(", ")
             appender.setEmptyValue("nothing :D")
             transaction { 
-                Bots.select { Bots.prefix like prefix }.forEach { appender.add(guild.getUserByID(it[Bots.bot_id])?.mention()) }
+                Bots.select { Bots.prefix eq prefix }.forEach { appender.add(guild.getUserByID(it[Bots.bot_id])?.mention()) }
             }
             
             return appender.toString()
