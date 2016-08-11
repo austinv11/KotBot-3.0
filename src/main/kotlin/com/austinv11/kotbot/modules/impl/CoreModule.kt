@@ -283,7 +283,7 @@ class CoreModule : KotBotModule() {
                         File(KotBot.JAR_PATH)
                     }.response { req, res, result -> 
                         result.fold({
-                            LOGGER.info("Successfully downloaded the new version of KotBot!")
+                            context.channel.sendMessage("Successfully downloaded the new version of KotBot!")
                             backup.delete()
                             KotBot.restart()
                         },{
