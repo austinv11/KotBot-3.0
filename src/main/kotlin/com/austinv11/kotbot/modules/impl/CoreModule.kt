@@ -275,7 +275,8 @@ class CoreModule : KotBotModule() {
         fun execute() {
             val jarFile = File(KotBot.JAR_PATH)
             val backup = File(jarFile.parent, "KotBot-backup.jar")
-
+            val channel = context.channel
+            
             try {
                 if (jarFile.renameTo(backup)) { //Want a backup in case the download goes wrong
                     LOGGER.info("Downloading a new version of KotBot...")
@@ -283,7 +284,7 @@ class CoreModule : KotBotModule() {
                         File(KotBot.JAR_PATH)
                     }.response { req, res, result -> 
                         result.fold({
-                            context.channel.sendMessage("Successfully downloaded the new version of KotBot!")
+                            channel.sendMessage("Successfully downloaded the new version of KotBot!")
                             backup.delete()
                             KotBot.restart()
                         },{
