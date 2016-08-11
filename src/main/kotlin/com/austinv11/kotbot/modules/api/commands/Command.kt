@@ -30,6 +30,11 @@ open class Command(val description: String,
                         val result = o1.name.compareTo(o2.name)
                         if (result == 0) {
                             o1.parameters.forEachIndexed { i, parameter ->
+                                if ((parameter.type == String::class.java)
+                                        .xor(o2.parameters[i].type == String::class.java)) {
+                                    return@Comparator if (parameter.type == String::class.java) 1 else -1 //Sorts string params last to prevent the wrong executor from being used
+                                } 
+                                
                                 val compareResult = parameter.name.compareTo(o2.parameters[i].name)
                                 if (compareResult != 0)
                                     return@Comparator compareResult

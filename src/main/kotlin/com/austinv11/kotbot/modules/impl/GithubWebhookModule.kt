@@ -28,7 +28,6 @@ class GithubWebhookModule: KotBotModule() { //Suck it voltbot!
         
         Spark.post("/github", { request, response -> 
             if (isEnabled) {
-                println(request.body())
                 when (request.headers("X-GitHub-Event")) {
                     "ping" -> {
                         //Ignored for now, pinged when the webhook is activated on a repo

@@ -2,6 +2,7 @@ package com.austinv11.kotbot.modules.impl
 
 import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.LOGGER
+import com.austinv11.kotbot.clamp
 import com.austinv11.kotbot.context
 import com.austinv11.kotbot.modules.api.KotBotModule
 import com.austinv11.kotbot.modules.api.commands.*
@@ -64,30 +65,60 @@ class CoreModule : KotBotModule() {
 
         @Executor
         fun list() {
-            val keys = CoreModule.commandMap.keys.toMutableList()
-            keys.sortWith(Comparator { o1, o2 -> o1.name.compareTo(o2.name) })
-
+            helpPage(0)
+        }
+        
+        @Executor
+        fun helpPage(@Description("page", "The help page to get.") page: Int) {
             val channel = if (KotBot.CONFIG.HELP_MESSAGE_TO_PM) context.user.orCreatePMChannel else context.channel
 
             channel.sendMessage(buildString {
                 appendln("```xl")
+
+                val helpPages = getHelpPages()
+                var page = (page-1).clamp(0, helpPages.size-1)
                 
-                val header = "Command List"
+                val header = "Command List (Page ${page+1}/${helpPages.size})"
                 appendln(header)
                 appendln("=".repeat(header.length))
-
-                keys.forEach {
-                    if (it.commands.size > 0) {
-                        appendln(it.name.removeSuffix("Module"))
-
-                        it.commands.forEach {
-                            appendln("*${it.name}")
-                        }
-                    }
-                }
+                
+                appendln(helpPages[page])
 
                 append("```")
             })
+        }
+        
+        private fun getHelpPages(): List<String> {
+            val keys = CoreModule.commandMap.keys.toMutableList()
+            keys.sortWith(Comparator { o1, o2 -> o1.name.compareTo(o2.name) })
+
+            val commands = mutableListOf<String>()
+            var builder = StringBuilder()
+            var lineCount = 0
+            
+            keys.forEach {
+                if (it.commands.size > 0) {
+                    if (lineCount >= 9) { //Don't want the last line being a module name
+                        lineCount = 0
+                        commands.add(builder.toString())
+                        builder = StringBuilder()
+                    }
+                    builder.appendln(it.name.removeSuffix("Module"))
+                    lineCount++
+
+                    it.commands.forEach {
+                        builder.appendln("*${it.name}")
+                        lineCount++
+                        if (lineCount == 10) {
+                            lineCount = 0
+                            commands.add(builder.toString())
+                            builder = StringBuilder()
+                        }
+                    }
+                }
+            }
+            
+            return commands
         }
 
         private fun sortByParamCount(list: MutableList<Method>): MutableList<Method> {
@@ -169,11 +200,7 @@ class CoreModule : KotBotModule() {
                     channel.sendMessage(buildString {
                         appendln("```xl")
 
-                        var index = usageType-1
-                        if (index < 0)
-                            index = 0
-                        if (index >= command.executors.size)
-                            index = command.executors.size-1
+                        val index = (usageType-1).clamp(0, command.executors.size-1)
 
                         val executor = sortByParamCount(command.executors.toMutableList())[index]
 

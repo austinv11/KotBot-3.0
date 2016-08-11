@@ -48,6 +48,19 @@ fun findChannelFromMessage(input: String, context: IMessage): IChannel? {
     return channel
 }
 
+fun Int.clamp(num1: Int, num2: Int): Int {
+    val max = Math.max(num1, num2)
+    val min = Math.min(num1, num2)
+    
+    if (this > max)
+        return max
+    
+    if (this < min)
+        return min
+    
+    return this
+}
+
 val IUser.isOwner: Boolean
     get() = this == KotBot.OWNER
 
