@@ -3,12 +3,14 @@ package com.austinv11.kotbot.modules.impl
 import com.austinv11.kotbot.Bots
 import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.context
+import com.austinv11.kotbot.findUserFromMessage
 import com.austinv11.kotbot.modules.api.KotBotModule
 import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
 import org.apache.commons.lang3.SystemUtils
 import org.jetbrains.exposed.sql.SchemaUtils.create
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
@@ -161,6 +163,33 @@ class Discord4JHelpModule : KotBotModule() {
                             transform = { context.channel.guild.getUserByID(it).getDisplayName(context.channel.guild) })}")
                 }
             }
+        }
+
+        @Executor
+        fun execute(@Description("user", "The user to clear the prefix for.") user: String): String {
+            val user = findUserFromMessage(user, context.message) ?: return ":poop: Cannot find user $user"
+            
+            transaction { 
+                Bots.deleteWhere { Bots.bot_id like user.id }
+            }
+            
+            return ":ok_hand:"
+        }
+
+        @Executor
+        fun execute(@Description("user", "The user to clear the prefix for.") user: String,
+                    @Description("prefix", "The prefix to update the database with.") commandPrefix: String): String {
+            val user = findUserFromMessage(user, context.message) ?: return ":poop: Cannot find user $user"
+
+            transaction {
+                Bots.deleteWhere { Bots.bot_id like user.id }
+                Bots.insert { 
+                    it[bot_id] = user.id
+                    it[prefix] = commandPrefix
+                }
+            }
+            
+            return ":ok_hand:"
         }
     } 
     
