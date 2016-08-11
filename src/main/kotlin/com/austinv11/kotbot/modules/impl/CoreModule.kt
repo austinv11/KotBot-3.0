@@ -288,7 +288,7 @@ class CoreModule : KotBotModule() {
                             backup.delete()
                             KotBot.restart()
                         },{
-                            LOGGER.error("Error downloading KotBot!", it.exception)
+                            channel.sendMessage("Error downloading KotBot!")
                             throw it.exception
                         })
                     }.timeout(TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES).toInt())
