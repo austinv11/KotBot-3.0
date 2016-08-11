@@ -146,7 +146,7 @@ class UtilityModule : KotBotModule() {
                     appendln("Avatar: ${user.avatarURL}")
                     appendln("User Account Creation Date: ${user.creationDate}")
                     if (!context.channel.isPrivate)
-                        appendln("`${context.channel.guild.name}` Guild Join Date: ${context.channel.guild.getJoinTimeForUser(user)}")
+                        appendln("${context.channel.guild.name} Guild Join Date: ${context.channel.guild.getJoinTimeForUser(user)}")
 
                     append("```")
                 }
