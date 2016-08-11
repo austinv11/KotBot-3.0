@@ -284,11 +284,11 @@ class CoreModule : KotBotModule() {
                         File(KotBot.JAR_PATH)
                     }.response { req, res, result -> 
                         result.fold({
-                            channel.sendMessage("Successfully downloaded the new version of KotBot!")
+                            channel.sendMessage(":ok_hand: Successfully downloaded the new version of KotBot!")
                             backup.delete()
                             KotBot.restart()
                         },{
-                            channel.sendMessage("Error downloading KotBot!")
+                            channel.sendMessage(":poop: Error downloading KotBot!")
                             throw it.exception
                         })
                     }.timeout(TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES).toInt())
