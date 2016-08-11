@@ -88,7 +88,7 @@ class Discord4JHelpModule : KotBotModule() {
             channel.sendMessage("User ${context.user.getDisplayName(context.channel.guild)} requested his/her bot join!\n" +
                     "Invite link: <$link>\n" +
                     "Prefix: `$botPrefix` (Conflicts with: ${getConflicts(botPrefix, context.channel.guild)})\n" +
-                    "Please accept or deny this request by typing `accept $id` <bot user if its already on the server> or `deny $id <reason>`")
+                    "Please accept or deny this request by typing `accept $id <bot user if its already on the server>` or `deny $id <reason>`")
             channel.toggleTypingStatus()
             var accepted = false
             var reason: String? = null
@@ -103,6 +103,8 @@ class Discord4JHelpModule : KotBotModule() {
                             if (override == null) {
                                 channel.sendMessage(":poop: Cannot find user $override")
                                 accepted = false
+                            } else {
+                                addBot(override!!, botPrefix)
                             }
                         }
                         return@waitFor true
@@ -116,7 +118,7 @@ class Discord4JHelpModule : KotBotModule() {
                 return@waitFor false
             }
             
-            if (accepted && override != null) {
+            if (accepted && override == null) {
                 KotBot.CLIENT.waitFor<UserJoinEvent> {
                     if (it.guild.id == DISCORD4J_GUILD_ID && it.user.isBot) {
                         val bot = it.user
@@ -162,20 +164,21 @@ class Discord4JHelpModule : KotBotModule() {
                 val prefixMap = mutableMapOf<String, MutableList<String>>()
                 transaction { 
                     Bots.selectAll().forEach { 
-                        val id = it[Bots.bot_id]
+                        val pre = it[Bots.prefix]
                         
-                        if (!prefixMap.containsKey(id))
-                            prefixMap[id] = mutableListOf()
+                        if (!prefixMap.containsKey(pre))
+                            prefixMap[pre] = mutableListOf()
                         
-                        prefixMap[id]!!.add(it[Bots.prefix])
+                        prefixMap[pre]!!.add(it[Bots.bot_id])
                     }
                 }
                 
                 appendln("__Prefixes:__")
                 
+                val channel = context.channel
                 prefixMap.forEach { 
-                    appendln("${it.key} - ${it.value.joinToString(", ", 
-                            transform = { context.channel.guild.getUserByID(it).getDisplayName(context.channel.guild) })}")
+                    appendln("`${it.key}` - ${it.value.joinToString(", ", 
+                            transform = { channel.guild.getUserByID(it).getDisplayName(channel.guild) })}")
                 }
             }
         }
