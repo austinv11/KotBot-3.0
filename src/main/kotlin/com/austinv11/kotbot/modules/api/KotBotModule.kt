@@ -40,7 +40,7 @@ abstract class KotBotModule : IModule {
     
     companion object {
         internal fun isAdmin(message: IMessage): Boolean {
-            return isAdmin(message.author) && message.author != message.guild.owner
+            return isAdmin(message.author) || message.author == message.guild.owner
         }
 
         internal fun isAdmin(user: IUser): Boolean {
@@ -50,7 +50,7 @@ abstract class KotBotModule : IModule {
                 result = Administrators.select { Administrators.id like user.id }.firstOrNull() != null
             }
 
-            return result && user != KotBot.OWNER
+            return result || user == KotBot.OWNER
         }
     }
     
