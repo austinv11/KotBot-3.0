@@ -20,6 +20,7 @@ import sx.blah.discord.util.BotInviteBuilder
 import java.io.File
 import java.lang.reflect.Method
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class CoreModule : KotBotModule() {
 
@@ -289,7 +290,8 @@ class CoreModule : KotBotModule() {
                             LOGGER.error("Error downloading KotBot!", it.exception)
                             throw it.exception
                         })
-                    }
+                    }.timeout(TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES).toInt())
+                            .timeoutRead(TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES).toInt())
                 } else {
                     throw FileSystemException(jarFile, backup, "Unable to move files.")
                 }
