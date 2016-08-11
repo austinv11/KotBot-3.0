@@ -20,6 +20,7 @@ import sx.blah.discord.handle.impl.events.MessageReceivedEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
 import sx.blah.discord.handle.impl.events.UserJoinEvent
 import sx.blah.discord.handle.obj.IGuild
+import sx.blah.discord.handle.obj.IUser
 import sx.blah.discord.kotlin.extensions.on
 import sx.blah.discord.kotlin.extensions.waitFor
 import sx.blah.discord.util.DiscordException
@@ -87,14 +88,23 @@ class Discord4JHelpModule : KotBotModule() {
             channel.sendMessage("User ${context.user.getDisplayName(context.channel.guild)} requested his/her bot join!\n" +
                     "Invite link: <$link>\n" +
                     "Prefix: `$botPrefix` (Conflicts with: ${getConflicts(botPrefix, context.channel.guild)})\n" +
-                    "Please accept or deny this request by typing `accept $id` or `deny $id <reason>`")
+                    "Please accept or deny this request by typing `accept $id` <bot user if its already on the server> or `deny $id <reason>`")
             channel.toggleTypingStatus()
             var accepted = false
             var reason: String? = null
+            var override: IUser? = null
             KotBot.CLIENT.waitFor<MessageReceivedEvent> { 
                 if (it.message.channel == channel) {
                     if (it.message.content.startsWith("accept $id")) {
                         accepted = true
+                        val overrideString = it.message.content.removePrefix("accept $id").trim()
+                        if (overrideString.length > 0) {
+                            override = findUserFromMessage(overrideString, it.message)
+                            if (override == null) {
+                                channel.sendMessage(":poop: Cannot find user $override")
+                                accepted = false
+                            }
+                        }
                         return@waitFor true
                     } else if (it.message.content.startsWith("deny $id")) {
                         reason = it.message.content.removePrefix("deny $id").trim()
@@ -106,26 +116,31 @@ class Discord4JHelpModule : KotBotModule() {
                 return@waitFor false
             }
             
-            if (accepted)
+            if (accepted && override != null) {
                 KotBot.CLIENT.waitFor<UserJoinEvent> {
                     if (it.guild.id == DISCORD4J_GUILD_ID && it.user.isBot) {
                         val bot = it.user
-                        transaction {
-                            Bots.insert {
-                                it[bot_id] = bot.id
-                                it[prefix] = botPrefix
-                            }
-                        }
+                        addBot(bot, botPrefix)
                         return@waitFor true
                     }
     
                     return@waitFor false
                 }
+            }
             
             if (channel.typingStatus)
                 channel.toggleTypingStatus()
             
             return if (accepted) "${context.user.mention()} Accepted! :ok_hand:" else "${context.user.mention()} Rejected! :poop: Reason: $reason"
+        }
+        
+        private fun addBot(bot: IUser, botPrefix: String) {
+            transaction {
+                Bots.insert {
+                    it[bot_id] = bot.id
+                    it[prefix] = botPrefix
+                }
+            }
         }
 
         private fun getConflicts(prefix: String, guild: IGuild): String {
