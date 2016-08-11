@@ -9,6 +9,7 @@ import sx.blah.discord.handle.obj.IUser
 import java.util.*
 
 fun findUserFromMessage(input: String, context: IMessage): IUser? {
+    val input = input.trim()
     val channel = context.channel
     var user: IUser? = null
     if (input.contains('#') && input.split("#").size == 2) { //User#Discrim
@@ -23,8 +24,9 @@ fun findUserFromMessage(input: String, context: IMessage): IUser? {
                     return@forEach
             }
         }
-    } else if (input.startsWith("<@") && context.mentions.filter { it != KotBot.SELF }.size > 0) { //@Mention
-        user = context.mentions.find { it != KotBot.SELF }
+    } else if (input.startsWith("<@") && input.endsWith(">")) { //@Mention
+        val id = input.removePrefix("<@").removePrefix("!").removeSuffix(">")
+        user = context.mentions.find { it.id == id }
     } else if (input.filter { it.isDigit() }.length == input.length) { //Id as its all numeric
         user = KotBot.CLIENT.getUserByID(input)
     } else { //Name (probably)
@@ -36,6 +38,7 @@ fun findUserFromMessage(input: String, context: IMessage): IUser? {
 }
 
 fun findChannelFromMessage(input: String, context: IMessage): IChannel? {
+    val input = input.trim()
     var channel: IChannel? = null
     if (input.startsWith("<#") && input.endsWith(">")) { //#Mention
         channel = KotBot.CLIENT.getChannelByID(input.removePrefix("<#").removeSuffix(">"))
