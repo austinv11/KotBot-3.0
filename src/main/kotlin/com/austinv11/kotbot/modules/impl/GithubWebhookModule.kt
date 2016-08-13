@@ -106,7 +106,7 @@ class GithubWebhookModule: KotBotModule() { //Suck it voltbot!
                         
                         if (!release.release.draft) {
                             val hook = KotBot.CONFIG.GITHUB_WEBHOOKS.find {
-                                (it.TYPE == Config.Webhook.Type.ISSUES || it.TYPE == Config.Webhook.Type.ALL)
+                                (it.TYPE == Config.Webhook.Type.RELEASES || it.TYPE == Config.Webhook.Type.ALL)
                                         && release.release.html_url.contains(it.REPO)
                             }
 
