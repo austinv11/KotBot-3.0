@@ -7,9 +7,12 @@ import spark.Spark
 import sx.blah.discord.Discord4J
 import sx.blah.discord.api.IDiscordClient
 import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent
+import sx.blah.discord.handle.impl.events.MessageReceivedEvent
 import sx.blah.discord.handle.impl.events.ReadyEvent
+import sx.blah.discord.handle.obj.IPrivateChannel
 import sx.blah.discord.handle.obj.IUser
 import sx.blah.discord.kotlin.bot
+import sx.blah.discord.kotlin.extensions.buffer
 import sx.blah.discord.kotlin.extensions.on
 import sx.blah.discord.kotlin.extensions.waitFor
 import java.io.File
@@ -47,6 +50,19 @@ fun main(args: Array<String>) {
                 LOGGER.error("KotBot disconnected for reason: ${it.reason}!")
                 LOGGER.info("KotBot is now restarting the executable...")
                 KotBot.restart()
+            }
+        }
+        
+        on<MessageReceivedEvent> {
+            if (KotBot.CONFIG.FORWARD_PRIVATE_MESSAGES_TO_OWNER && it.message.channel.isPrivate) {
+                val privateChannel = it.message.channel as IPrivateChannel
+                if (privateChannel.recipient != KotBot.OWNER) { //No sense in reporting the owner's messages
+                    buffer {
+                        KotBot.OWNER.orCreatePMChannel.sendMessage("__**Message received from " +
+                                "${privateChannel.recipient.name}#${privateChannel.recipient.discriminator}:**__\n" +
+                                it.message.content)
+                    }
+                }
             }
         }
 
