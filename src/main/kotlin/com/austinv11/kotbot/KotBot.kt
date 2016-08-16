@@ -40,6 +40,15 @@ fun main(args: Array<String>) {
             LOGGER.info("KotBot v${KotBot.VERSION} has been initialized!")
             LOGGER.debug("Started in ${System.currentTimeMillis() - startTime}ms")
         }
+        
+        on<DiscordDisconnectedEvent> {
+            if (it.reason != DiscordDisconnectedEvent.Reason.RECONNECTING 
+                    && it.reason != DiscordDisconnectedEvent.Reason.LOGGED_OUT) {
+                LOGGER.error("KotBot disconnected for reason: ${it.reason}!")
+                LOGGER.info("KotBot is now restarting the executable...")
+                KotBot.restart()
+            }
+        }
 
         login()
     }
