@@ -212,4 +212,17 @@ class UtilityModule : KotBotModule() {
             return "Unable to find information for channel $arg"
         }
     }
+    
+    class MessageCommand: Command("This sends a pm to the specified user.", arrayOf("msg", "dm")) {
+        
+        @Executor
+        fun execute(@Description("user", "The user to message.") user: String,
+                    @Description("message", "The message to send.") message: String): String {
+            val userObj = findUserFromMessage(user, context.message) ?: return ":poop: Can't find user $user"
+            
+            userObj.orCreatePMChannel.sendMessage(message)
+            
+            return ":ok_hand:"
+        }
+    }
 }
