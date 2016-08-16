@@ -70,7 +70,7 @@ class Discord4JHelpModule : KotBotModule() {
     fun onJoin(event: UserJoinEvent) {
         if (event.guild.id == DISCORD4J_GUILD_ID && event.user.isBot) { //Auto add the bot role in the d4j guild
             if (event.user.getRolesForGuild(event.guild).size == 0)
-                event.user.addRole(event.guild.getRoleByID(BOT_ROLE_ID), event.guild)
+                event.user.addRole(event.guild.getRoleByID(BOT_ROLE_ID))
         }
     }
     
