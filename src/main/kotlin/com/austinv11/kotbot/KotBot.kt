@@ -99,7 +99,7 @@ class KotBot {
         /**
          * The minimum required version of Discord4J.
          */
-        val MINIMUM_DISCORD4J_VERSION = "2.5.3"
+        val MINIMUM_DISCORD4J_VERSION = "2.6.0"
         /**
          * The client representing this bot instance.
          */
