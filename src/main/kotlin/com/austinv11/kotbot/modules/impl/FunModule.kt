@@ -1,8 +1,10 @@
 package com.austinv11.kotbot.modules.impl
 
+import com.austinv11.kotbot.KotBot
 import com.austinv11.kotbot.Tags
 import com.austinv11.kotbot.context
 import com.austinv11.kotbot.modules.api.KotBotModule
+import com.austinv11.kotbot.modules.api.commands.ApprovedUsers
 import com.austinv11.kotbot.modules.api.commands.Command
 import com.austinv11.kotbot.modules.api.commands.Description
 import com.austinv11.kotbot.modules.api.commands.Executor
@@ -11,6 +13,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import sx.blah.discord.handle.obj.Status
 import java.util.*
 
 class FunModule: KotBotModule() {
@@ -96,6 +99,22 @@ class FunModule: KotBotModule() {
         
         enum class Actions {
             PUT, REMOVE, GET
+        }
+    }
+
+    class StatusCommand: Command("This sets the status of the bot,", arrayOf("game"),
+            approvedUsers = ApprovedUsers.OWNER) {
+
+        @Executor
+        fun execute(): String {
+            KotBot.CLIENT.changeStatus(Status.empty())
+            return ":ok_hand:"
+        }
+
+        @Executor
+        fun execute(@Description("game", "The new game for this bot to play") game: String): String {
+            KotBot.CLIENT.changeStatus(Status.game(game))
+            return ":ok_hand:"
         }
     }
 }
