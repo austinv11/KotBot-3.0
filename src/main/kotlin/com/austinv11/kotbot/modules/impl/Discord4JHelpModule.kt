@@ -233,7 +233,7 @@ class Discord4JHelpModule : KotBotModule() {
                         "Cannot PM yourself!" -> {
                             return "You tried to pm yourself, silly you."
                         }
-                        "This action can only be performed by as user" -> {
+                        "This action can only be performed by a user" -> {
                             return "Your bot is a \"bot\" account, meaning it cannot do certain actions which are only " +
                                     "available to actual user accounts."
                         }
@@ -314,7 +314,7 @@ class Discord4JHelpModule : KotBotModule() {
                 isBody = !isHeader
                 
                 if (isHeader) {
-                    val split = line.split(": ")
+                    val split = line.removePrefix("Caused by: ").split(": ")
                     
                     try {
                         exceptionClass = Class.forName(split[0]) as Class<in Throwable>?
