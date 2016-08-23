@@ -50,7 +50,7 @@ dependencies {
     //So that I can have embedded modules:
     compile "com.github.Discord4J-Addons:Module-Loader-Plus:1.0.3"
     //The actual Discord api:
-    compile "com.github.austinv11:Discord4j:9512528"
+    compile "com.github.austinv11:Discord4j:dcb1775"
     //D4J/JDA player:
     compile("net.dv8tion:d4j-player:0.2.2_15") {
         exclude group: 'com.github.austinv11', module: 'Discord4j' //That way I could manage the d4j version manually
