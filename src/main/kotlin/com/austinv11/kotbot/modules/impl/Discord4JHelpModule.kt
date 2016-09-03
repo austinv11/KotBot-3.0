@@ -160,9 +160,11 @@ class Discord4JHelpModule : KotBotModule() {
         
         @Executor
         fun execute(): String {
-            return buildString { 
+            return buildString {
+                val channel = context.channel
+
                 val prefixMap = mutableMapOf<String, MutableList<String>>()
-                transaction { 
+                transaction {
                     Bots.selectAll().forEach { 
                         val pre = it[Bots.prefix]
                         
@@ -174,10 +176,19 @@ class Discord4JHelpModule : KotBotModule() {
                 }
                 
                 appendln("__Prefixes:__")
-                
-                val channel = context.channel
-                prefixMap.forEach { 
-                    appendln("`${it.key}` - ${it.value.joinToString(", ", 
+
+                prefixMap.forEach {
+                    transaction {
+                        it.value.removeIf { //Removes users from the list and db if they no longer exist
+                            if (channel.guild.getUserByID(it) == null) {
+                                Bots.deleteWhere { Bots.bot_id like it }
+                                return@removeIf true
+                            }
+
+                            return@removeIf false
+                        }
+                    }
+                    appendln("`${it.key}` - ${it.value.joinToString(", ",
                             transform = { channel.guild.getUserByID(it).getDisplayName(channel.guild) })}")
                 }
             }
