@@ -180,9 +180,7 @@ class Discord4JHelpModule : KotBotModule() {
                 prefixMap.forEach {
                     it.value.removeIf { //Removes users from the list and db if they no longer exist
                         if (channel.guild.getUserByID(it) == null) {
-                            transaction {
-                                Bots.deleteWhere { Bots.bot_id like it }
-                            }
+//                            Bots.deleteWhere { Bots.bot_id like it }
                             return@removeIf true
                         }
 
