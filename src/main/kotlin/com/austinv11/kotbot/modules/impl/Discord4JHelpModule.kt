@@ -178,15 +178,15 @@ class Discord4JHelpModule : KotBotModule() {
                 appendln("__Prefixes:__")
 
                 prefixMap.forEach {
-                    transaction {
-                        it.value.removeIf { //Removes users from the list and db if they no longer exist
-                            if (channel.guild.getUserByID(it) == null) {
+                    it.value.removeIf { //Removes users from the list and db if they no longer exist
+                        if (channel.guild.getUserByID(it) == null) {
+                            transaction {
                                 Bots.deleteWhere { Bots.bot_id like it }
-                                return@removeIf true
                             }
-
-                            return@removeIf false
+                            return@removeIf true
                         }
+
+                        return@removeIf false
                     }
                     appendln("`${it.key}` - ${it.value.joinToString(", ",
                             transform = { channel.guild.getUserByID(it).getDisplayName(channel.guild) })}")
