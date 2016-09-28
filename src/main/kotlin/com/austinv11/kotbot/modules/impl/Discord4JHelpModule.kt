@@ -59,19 +59,18 @@ class Discord4JHelpModule : KotBotModule() {
                 }
             }
         }
+
+        KotBot.CLIENT.on<UserJoinEvent> {
+            if (it.guild.id == DISCORD4J_GUILD_ID && it.user.isBot) { //Auto add the bot role in the d4j guild
+                if (it.user.getRolesForGuild(it.guild).size == 0)
+                    it.user.addRole(it.guild.getRoleByID(BOT_ROLE_ID))
+            }
+        }
     }
     
     @EventSubscriber
     fun onMessage(event: MessageReceivedEvent) { //Analyzes messages to determine a way to best help people
         //TODO
-    }
-    
-    @EventSubscriber
-    fun onJoin(event: UserJoinEvent) {
-        if (event.guild.id == DISCORD4J_GUILD_ID && event.user.isBot) { //Auto add the bot role in the d4j guild
-            if (event.user.getRolesForGuild(event.guild).size == 0)
-                event.user.addRole(event.guild.getRoleByID(BOT_ROLE_ID))
-        }
     }
     
     class BotCommand: Command("This allows you to invite a bot to the server.", allowInPrivateChannels = false,
